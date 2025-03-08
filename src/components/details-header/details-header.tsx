@@ -13,8 +13,8 @@ import type {
 } from "@/types";
 
 import { getUser } from "@/lib/auth";
-import { getUserFavorites, getUserPlaylists } from "@/lib/db/queries";
 import { cn, formatDuration, getHref, getImageSrc } from "@/lib/utils";
+import { getUserFavorites, getUserPlaylists } from "@/server/db/client/queries";
 import { DownloadButton } from "../download-button";
 import { ImageWithFallback } from "../image-with-fallback";
 import { LikeButton } from "../like-button";

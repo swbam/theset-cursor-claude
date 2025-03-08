@@ -5,9 +5,9 @@ import GoogleProvider from "next-auth/providers/google";
 
 import type { NextAuthConfig } from "next-auth";
 
-import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { loginSchema } from "@/lib/validations";
+import { db } from "@/server/db/client";
 
 export const authConfig: NextAuthConfig = {
   providers: [

@@ -5,11 +5,14 @@ import { Heart } from "lucide-react";
 import { toast } from "sonner";
 
 import type { User } from "next-auth";
-import type { Favorite } from "@/lib/db/schema";
+import type { Favorite } from "@/server/db/client/schema";
 import type { Type } from "@/types";
 
-import { addToFavorites, removeFromFavorites } from "@/lib/db/queries";
 import { cn, currentlyInDev } from "@/lib/utils";
+import {
+  addToFavorites,
+  removeFromFavorites,
+} from "@/server/db/client/queries";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 type LikeButtonProps = React.HtmlHTMLAttributes<HTMLButtonElement> & {

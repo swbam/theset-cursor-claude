@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Play } from "lucide-react";
 
 import type { User } from "next-auth";
-import type { Favorite, MyPlaylist } from "@/lib/db/schema";
+import type { Favorite, MyPlaylist } from "@/server/db/client/schema";
 import type { Episode, Song } from "@/types";
 
 import { cn, formatDuration, getHref, getImageSrc } from "@/lib/utils";

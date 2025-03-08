@@ -3,7 +3,7 @@
 import { List, ListX } from "lucide-react";
 
 import type { User } from "next-auth";
-import type { MyPlaylist } from "@/lib/db/schema";
+import type { MyPlaylist } from "@/server/db/client/schema";
 
 import { Button } from "../ui/button";
 import {

@@ -1,51 +1,96 @@
-import { SliderCard } from "@/components/slider";
-import { siteConfig } from "@/config/site";
-import { getTopArtists } from "@/lib/jiosaavn-api";
+import { Suspense } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Music } from "lucide-react";
 
-const title = ` Top Indian Music Artists - Download or Listen Free on ${siteConfig.name} `;
-const description = `Search for songs based on Top Artist. Get new and old songs based on artists along with details of individual artist on ${siteConfig.name}.`;
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { db } from "@/lib/db";
+import { artists } from "@/lib/db/schema";
 
 export const metadata = {
-  title,
-  description,
-  openGraph: {
-    title,
-    description,
-
-    url: "/artist",
-    images: {
-      url: `/api/og?title=${title}&description=${description}&image=https://graph.org/file/f6f124cfb227a3c45ced5.png`,
-      alt: "Top Indian Music Artists",
-    },
-  },
+  title: "Artists",
+  description: "Discover artists and their upcoming shows",
 };
 
-export default async function TopArtistsPage() {
-  const topArtists = await getTopArtists();
+async function ArtistsList() {
+  // Get popular artists from our database
+  const popularArtists = await db.query.artists.findMany({
+    orderBy: (artists, { desc }) => [desc(artists.popularity)],
+    limit: 24,
+  });
+
+  if (popularArtists.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Music className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold mb-2">No artists found</h2>
+        <p className="text-muted-foreground mb-6">
+          We couldn't find any artists. Try searching for your favorite artists.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="my-4 space-y-4">
-      <h1 className="font-heading text-2xl drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-3xl md:text-4xl">
-        Top Artists
-      </h1>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {popularArtists.map((artist) => (
+        <Card key={artist.id} className="overflow-hidden">
+          <CardHeader className="p-0 h-48 relative">
+            <Link href={`/artist/${artist.id}`}>
+              <Image
+                src={artist.image_url || "/placeholder-artist.jpg"}
+                alt={artist.name}
+                fill
+                className="object-cover"
+              />
+            </Link>
+          </CardHeader>
+          <CardContent className="p-4">
+            <Link href={`/artist/${artist.id}`} className="hover:underline">
+              <CardTitle className="line-clamp-1">{artist.name}</CardTitle>
+            </Link>
+            <div className="mt-2 flex flex-wrap gap-1">
+              {artist.genres?.slice(0, 3).map((genre) => (
+                <Badge key={genre} variant="secondary" className="text-xs">
+                  {genre}
+                </Badge>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {artist.followers ?
+                `${artist.followers.toLocaleString()} followers`
+              : ""}
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
-      <div className="flex w-full flex-wrap justify-between gap-y-4">
-        {topArtists.map(({ id, name, url, follower_count, image }) => (
-          <SliderCard
-            key={id}
-            name={name}
-            url={url}
-            subtitle={`${follower_count.toLocaleString()} Fans`}
-            type="artist"
-            image={image}
-          />
-        ))}
+export default function ArtistsPage() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Artists</h1>
+        <p className="text-muted-foreground">
+          Discover artists and their upcoming shows
+        </p>
       </div>
 
-      <h3 className="py-6 text-center font-heading text-xl drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-2xl md:text-3xl">
-        <em>Yay! You have seen it all</em>{" "}
-        <span className="text-foreground">🤩</span>
-      </h3>
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className="h-[300px] rounded-xl" />
+            ))}
+          </div>
+        }
+      >
+        <ArtistsList />
+      </Suspense>
     </div>
   );
 }

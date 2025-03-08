@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 import type { LucideIcon } from "lucide-react";
 import type { User } from "next-auth";
-import type { MyPlaylist } from "@/lib/db/schema";
+import type { MyPlaylist } from "@/server/db/client/schema";
 import type { Quality, Queue, Song, Type } from "@/types";
 
 import {
@@ -30,8 +30,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useQueue } from "@/hooks/use-store";
-import { addSongsToPlaylist } from "@/lib/db/queries";
 import { currentlyInDev, getImageSrc } from "@/lib/utils";
+import { addSongsToPlaylist } from "@/server/db/client/queries";
 import { AddToPlaylistDialog } from "../playlist/add-to-playlist-dialog";
 import { ShareOptions } from "../share-options";
 import { ShareSubMenu } from "../share-submenu";

@@ -1,4 +1,4 @@
-import type { MyPlaylist } from "@/lib/db/schema";
+import type { MyPlaylist } from "@/server/db/client/schema";
 
 type UsersPlaylistsProps = {
   playlists: MyPlaylist[];

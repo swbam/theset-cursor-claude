@@ -5,7 +5,7 @@ import { NewPlaylistForm } from "@/components/playlist/new-playlist-form";
 import { SliderCardSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { getUser } from "@/lib/auth";
-import { getUserPlaylists } from "@/lib/db/queries";
+import { getUserPlaylists } from "@/server/db/client/queries";
 import { PlaylistItem } from "./_components/playlist-item";
 
 export const metadata = {

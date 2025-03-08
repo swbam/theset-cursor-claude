@@ -1,12 +1,12 @@
 import {
-  Disc3,
+  CalendarDays,
   History,
-  Library,
   ListMusic,
   Mic2,
-  Podcast,
-  Radio,
+  Music,
   Star,
+  TicketIcon,
+  TrendingUp,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
@@ -19,45 +19,40 @@ type NavItem = {
 
 export const sidebarNav: NavItem[] = [
   {
-    title: "Top Albums",
-    href: "/album",
-    icon: Library,
+    title: "Trending Shows",
+    href: "/",
+    icon: TrendingUp,
   },
   {
-    title: "Top Charts",
-    href: "/chart",
-    icon: Disc3,
+    title: "All Shows",
+    href: "/shows",
+    icon: TicketIcon,
   },
   {
-    title: "Top Playlists",
-    href: "/playlist",
+    title: "My Setlists",
+    href: "/my/setlists",
     icon: ListMusic,
   },
   {
-    title: "Podcasts",
-    href: "/show",
-    icon: Podcast,
-  },
-  {
-    title: "Top Artists",
+    title: "Artists",
     href: "/artist",
     icon: Mic2,
   },
   {
-    title: "Radio",
-    href: "/radio",
-    icon: Radio,
+    title: "Upcoming Shows",
+    href: "/shows",
+    icon: CalendarDays,
   },
 
   // authenticated routes
   {
-    title: "Recently Played",
-    href: "/me/recently-played",
-    icon: History,
+    title: "My Spotify Artists",
+    href: "/my/artists",
+    icon: Music,
   },
   {
-    title: "Your Favorite",
-    href: "/me/liked-songs",
+    title: "My Votes",
+    href: "/my/setlists",
     icon: Star,
   },
 ];

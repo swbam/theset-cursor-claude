@@ -1,21 +1,74 @@
+import {
+  Home,
+  Mic2,
+  Music,
+  Search,
+  Star,
+  TicketIcon,
+  TrendingUp,
+} from "lucide-react";
+
 export const siteConfig = {
-  name: "Infinitunes",
-  url: "https://infinitunes.rajputhemant.me",
+  name: "TheSet",
   description:
-    "A Simple Music Player Web App built using Next.js, shadcn/ui, TailwindCSS, DrizzleORM and more...",
-
-  author: {
-    name: "Hemant Rajput",
-    url: "https://rajputhemant.me",
-    email: "68769346+rajput-hemant@users.noreply.github.com",
-    x: "@rajput_hemant01",
-  },
-
-  links: {
-    github: "https://github.com/rajput-hemant/infinitunes",
-    discord: "https://discord.gg/rajput-hemant#8269",
-    x: "https://twitter.com/rajput_hemant01",
-  },
+    "Discover upcoming concerts, vote on setlists, and influence live performances with TheSet.",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://theset.app",
+  ogImage: "/og.png",
+  mainNav: [
+    {
+      title: "Home",
+      href: "/",
+    },
+    {
+      title: "Artists",
+      href: "/artist",
+    },
+    {
+      title: "Shows",
+      href: "/shows",
+    },
+    {
+      title: "Search",
+      href: "/search",
+    },
+  ],
+  sidebarNav: [
+    {
+      title: "Discover",
+      items: [
+        {
+          title: "Trending Shows",
+          href: "/",
+          icon: TrendingUp,
+        },
+        {
+          title: "All Shows",
+          href: "/shows",
+          icon: TicketIcon,
+        },
+        {
+          title: "Artists",
+          href: "/artist",
+          icon: Mic2,
+        },
+      ],
+    },
+    {
+      title: "My Music",
+      items: [
+        {
+          title: "My Spotify Artists",
+          href: "/my/artists",
+          icon: Music,
+        },
+        {
+          title: "My Setlists",
+          href: "/my/setlists",
+          icon: Star,
+        },
+      ],
+    },
+  ],
 };
 
 export type SiteConfig = typeof siteConfig;

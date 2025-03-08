@@ -22,7 +22,7 @@ const config: NextConfig = {
     unoptimized: !isDocker,
   },
   experimental: {
-    ppr: true,
+    ppr: false,
     reactCompiler: isProd ? true : undefined,
     // ...
   },

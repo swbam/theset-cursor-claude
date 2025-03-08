@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { MyPlaylist } from "@/lib/db/schema";
+import type { MyPlaylist } from "@/server/db/client/schema";
 
 import { ImageCollage } from "@/components/image-collage";
 import { Card, CardContent } from "@/components/ui/card";

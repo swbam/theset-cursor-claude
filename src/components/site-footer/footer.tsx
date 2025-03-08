@@ -2,18 +2,46 @@ import Link from "next/link";
 
 import { languages } from "@/config/languages";
 import { siteConfig } from "@/config/site";
-import { getFooterDetails } from "@/lib/jiosaavn-api";
 import { Icons } from "../icons";
 import { ThemeToggleGroup } from "./theme-toggle-group";
 
 export async function SiteFooter() {
-  const { artist, actor, album, playlist } = await getFooterDetails();
-
   const footerLinks = [
-    { title: "Top Artist", data: artist },
-    { title: "Top Actors", data: actor },
-    { title: "New Releases", data: album },
-    { title: "Top Playlists", data: playlist },
+    {
+      title: "Discover",
+      data: [
+        { id: "1", title: "Trending Shows", action: "/" },
+        { id: "2", title: "All Shows", action: "/shows" },
+        { id: "3", title: "Artists", action: "/artist" },
+        { id: "4", title: "Search", action: "/search" },
+      ],
+    },
+    {
+      title: "My Account",
+      data: [
+        { id: "1", title: "My Setlists", action: "/my/setlists" },
+        { id: "2", title: "My Spotify Artists", action: "/my-spotify-artists" },
+        { id: "3", title: "Settings", action: "/settings" },
+      ],
+    },
+    {
+      title: "Popular Genres",
+      data: [
+        { id: "1", title: "Rock", action: "/search/artist/rock" },
+        { id: "2", title: "Pop", action: "/search/artist/pop" },
+        { id: "3", title: "Hip Hop", action: "/search/artist/hip%20hop" },
+        { id: "4", title: "Electronic", action: "/search/artist/electronic" },
+      ],
+    },
+    {
+      title: "Popular Cities",
+      data: [
+        { id: "1", title: "New York", action: "/shows?city=New%20York" },
+        { id: "2", title: "Los Angeles", action: "/shows?city=Los%20Angeles" },
+        { id: "3", title: "London", action: "/shows?city=London" },
+        { id: "4", title: "Tokyo", action: "/shows?city=Tokyo" },
+      ],
+    },
   ];
 
   return (
@@ -69,31 +97,12 @@ export async function SiteFooter() {
                     key={id}
                     className="w-full text-xs text-muted-foreground hover:text-secondary-foreground"
                   >
-                    <Link href={action.replace("featured", "playlist")}>
-                      {title}
-                    </Link>
+                    <Link href={action}>{title}</Link>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
-
-          <div className="flex flex-col gap-2.5">
-            <p className="text-sm font-semibold lg:text-sm">Languages</p>
-
-            <ul className="w-fit space-y-1">
-              {languages.map((lang) => (
-                <li
-                  key={lang}
-                  className="w-full text-xs text-muted-foreground hover:text-secondary-foreground"
-                >
-                  <Link
-                    href={`/album?lang=${lang.toLowerCase()}`}
-                  >{`${lang} Songs`}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
       </div>
 
@@ -104,10 +113,9 @@ export async function SiteFooter() {
               {siteConfig.name}
             </span>
           </Link>{" "}
-          is not affiliated with JioSaavn. All trademarks and copyrights belong
-          to their respective owners. All media, images, and songs are the
-          property of their respective owners. This site is for educational
-          purposes only.
+          is a concert discovery and setlist voting platform. Find upcoming
+          shows, vote on setlists, and influence live performances. This site is
+          for educational purposes only.
         </p>
 
         <ThemeToggleGroup className="w-fit" />

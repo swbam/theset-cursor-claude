@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { compare, hash } from "bcryptjs";
 import { count, eq } from "drizzle-orm";
 
-import type { NewUser } from "./db/schema";
+import type { NewUser } from "./server/db/client/schema";
 import type {
   newPlaylistSchema,
   resetPasswordSchema,
@@ -14,8 +14,8 @@ import type {
 } from "./validations";
 import type { z } from "zod";
 
-import { db } from "./db";
-import { myPlaylists, users } from "./db/schema";
+import { db } from "./server/db/client";
+import { myPlaylists, users } from "./server/db/client/schema";
 
 export async function createNewAccount(
   credentials: z.infer<typeof signUpSchema>

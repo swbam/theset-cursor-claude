@@ -7,9 +7,9 @@ import { PlayButton } from "@/components/play-button";
 import { SongList } from "@/components/song-list";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getPlaylistDetails } from "@/lib/db/queries";
 import { getSongDetails } from "@/lib/jiosaavn-api";
 import { cn, formatDuration, getImageSrc } from "@/lib/utils";
+import { getPlaylistDetails } from "@/server/db/client/queries";
 
 type Props = {
   params: Promise<{

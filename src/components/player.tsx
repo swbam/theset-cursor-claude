@@ -18,7 +18,7 @@ import {
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 
 import type { User } from "next-auth";
-import type { MyPlaylist } from "@/lib/db/schema";
+import type { MyPlaylist } from "@/server/db/client/schema";
 
 import { useEventListener } from "@/hooks/use-event-listner";
 import {

@@ -14,20 +14,14 @@ export const DEFAULT_LOGIN_REDIRECT = "/";
  */
 export const appRoutes = [
   "/",
-  "/album",
   "/artist",
-  "/chart",
-  "/episode",
-  "/label",
-  "/mix",
-  "/playlists",
-  "/radio",
+  "/shows",
   "/search",
-  "/show",
-  "/song",
+  "/my/setlists",
+  "/my-spotify-artists",
 ];
 
 /**
  * An array of user routes for the application
  */
-export const userRoutes = ["/me", "/settings"];
+export const userRoutes = ["/my", "/settings"];

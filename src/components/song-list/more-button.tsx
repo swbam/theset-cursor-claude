@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 import type { LucideIcon } from "lucide-react";
 import type { User } from "next-auth";
-import type { MyPlaylist } from "@/lib/db/schema";
+import type { MyPlaylist } from "@/server/db/client/schema";
 import type { Episode, Queue, Song } from "@/types";
 
 import {
@@ -36,8 +36,8 @@ import {
   useIsPlayerInit,
   useQueue,
 } from "@/hooks/use-store";
-import { addSongsToPlaylist } from "@/lib/db/queries";
 import { cn, currentlyInDev, getImageSrc } from "@/lib/utils";
+import { addSongsToPlaylist } from "@/server/db/client/queries";
 import { AddToPlaylistDialog } from "../playlist/add-to-playlist-dialog";
 import { ShareOptions } from "../share-options";
 import { ShareSubMenu } from "../share-submenu";

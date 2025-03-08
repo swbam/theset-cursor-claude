@@ -1,66 +1,72 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { getTopSearches } from "@/lib/jiosaavn-api";
-import { getHref, getImageSrc } from "@/lib/utils";
-import { SliderCard } from "../slider";
+import { db } from "@/lib/db";
+import { artists } from "@/lib/db/schema";
+import { Badge } from "../ui/badge";
+import { Card, CardContent } from "../ui/card";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { Skeleton } from "../ui/skeleton";
 
 export async function TopSearch() {
-  const topSearches = await getTopSearches();
+  // Get popular artists
+  const popularArtists = await db.query.artists.findMany({
+    orderBy: (artists, { desc }) => desc(artists.popularity),
+    limit: 8,
+  });
+
+  if (popularArtists.length === 0) {
+    return (
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-4">Popular Artists</h2>
+        <p className="text-muted-foreground">
+          No popular artists found. Try searching for an artist above.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <p className="font-heading text-xl drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-2xl md:text-3xl">
-        Trending Searches
-      </p>
-
-      <ScrollArea className="lg:hidden">
-        <div className="flex space-x-4 pb-4">
-          {topSearches.map(({ id, name, url, subtitle, type, image }) => (
-            <SliderCard
-              key={id}
-              name={name}
-              url={url}
-              subtitle={subtitle}
-              type={type}
-              image={image}
-            />
+    <div className="mb-8">
+      <h2 className="text-xl font-bold mb-4">Popular Artists</h2>
+      <ScrollArea className="w-full whitespace-nowrap pb-4">
+        <div className="flex space-x-4">
+          {popularArtists.map((artist) => (
+            <Link
+              key={artist.id}
+              href={`/artist/${artist.id}`}
+              className="w-[180px] shrink-0"
+            >
+              <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                <div className="relative aspect-square overflow-hidden">
+                  <Image
+                    src={artist.image_url || "/images/artist-placeholder.jpg"}
+                    alt={artist.name}
+                    fill
+                    className="object-cover transition-transform hover:scale-105"
+                    sizes="180px"
+                  />
+                </div>
+                <CardContent className="p-3">
+                  <h3 className="font-medium line-clamp-1">{artist.name}</h3>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {artist.genres.slice(0, 1).map((genre) => (
+                      <Badge
+                        key={genre}
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {genre}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
-
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-
-      <div className="hidden max-w-5xl gap-2 md:grid-cols-2 lg:grid lg:grid-cols-3">
-        {topSearches.map((t) => (
-          <Link
-            key={t.id}
-            href={getHref(t.url, t.type)}
-            className="flex gap-2 rounded-md p-2 hover:bg-secondary"
-          >
-            <div className="relative aspect-square h-12 min-h-fit overflow-hidden rounded">
-              <Image
-                src={getImageSrc(t.image, "low")}
-                alt={t.name}
-                fill
-                className="z-10 object-cover"
-              />
-
-              <Skeleton className="size-full" />
-            </div>
-
-            <div className="my-auto w-[calc(100%-3rem)]">
-              <div className="truncate text-sm font-medium">{t.name}</div>
-
-              <div className="truncate text-xs capitalize text-muted-foreground">
-                {t.subtitle}
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </>
+    </div>
   );
 }

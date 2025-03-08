@@ -2,12 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play } from "lucide-react";
 
-import type { Favorite, MyPlaylist } from "@/lib/db/schema";
+import type { Favorite, MyPlaylist } from "@/server/db/client/schema";
 import type { Episode, Song } from "@/types";
 
 import { getUser } from "@/lib/auth";
-import { getUserFavorites, getUserPlaylists } from "@/lib/db/queries";
 import { cn, formatDuration, getHref, getImageSrc } from "@/lib/utils";
+import { getUserFavorites, getUserPlaylists } from "@/server/db/client/queries";
 import { DownloadButton } from "../download-button";
 import { LikeButton } from "../like-button";
 import { PlayButton } from "../play-button";

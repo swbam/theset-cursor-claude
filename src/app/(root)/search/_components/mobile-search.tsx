@@ -8,8 +8,9 @@ import type { AllSearch } from "@/types";
 import { SearchAll } from "@/components/search/search-all";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
-import { useIsTyping } from "@/hooks/use-store";
-import { searchAll } from "@/lib/jiosaavn-api";
+import { useIsInfinitelyScrolled } from "@/hooks/use-store";
+import { formatError } from "@/lib/error-formatting";
+import { searchAll } from "@/lib/spotify-api";
 
 type MobileSearchProps = {
   topSearch: React.JSX.Element;
@@ -23,7 +24,7 @@ export function MobileSearch({ topSearch }: MobileSearchProps) {
   );
 
   const debouncedQuery = useDebounce(query.trim(), 1000);
-  const [_, setIsTyping] = useIsTyping();
+  const [_, setIsInfinitelyScrolled] = useIsInfinitelyScrolled();
 
   React.useEffect(() => {
     (async () => {
@@ -36,9 +37,9 @@ export function MobileSearch({ topSearch }: MobileSearchProps) {
   }, [debouncedQuery]);
 
   React.useEffect(() => {
-    if (debouncedQuery.length) setIsTyping(true);
-    else setIsTyping(false);
-  }, [debouncedQuery, setIsTyping]);
+    if (debouncedQuery.length) setIsInfinitelyScrolled(true);
+    else setIsInfinitelyScrolled(false);
+  }, [debouncedQuery, setIsInfinitelyScrolled]);
 
   return (
     <>

@@ -71,17 +71,18 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
 
   // Genre filters
   if (mainGenre && mainGenre !== "All Genres") {
-    filters.push(eq(db.query.artists.genres, mainGenre));
+    // Use json containment operator for genres array
+    filters.push(sql`${db.query.artists.genres}::jsonb ? ${mainGenre}`);
 
     if (subGenres) {
       const subGenreList = subGenres.split(",");
-      filters.push(
-        or(
-          ...subGenreList.map((genre) =>
-            ilike(db.query.artists.genres, `%${genre}%`)
-          )
-        )
+      const subGenreFilters = subGenreList.map(
+        (genre: string) => sql`${db.query.artists.genres}::jsonb ? ${genre}`
       );
+
+      if (subGenreFilters.length > 0) {
+        filters.push(or(...subGenreFilters));
+      }
     }
   }
 
@@ -95,7 +96,7 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
       filters.push(
         sql`ST_DWithin(
           ST_MakePoint(${lng}, ${lat})::geography,
-          ST_MakePoint(venues.longitude, venues.latitude)::geography,
+          ST_MakePoint(${db.query.venues.longitude}, ${db.query.venues.latitude})::geography,
           ${searchRadius * 1609.34}
         )`
       );
@@ -175,7 +176,7 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
           asc(sql`
           ST_Distance(
             ST_MakePoint(${lng}, ${lat})::geography,
-            ST_MakePoint(venues.longitude, venues.latitude)::geography
+            ST_MakePoint(${db.query.venues.longitude}, ${db.query.venues.latitude})::geography
           )
         `)
         );
@@ -222,19 +223,23 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
-              {show.artist.genres?.length > 0 && (
-                <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
-                  {show.artist.genres.slice(0, 2).map((genre) => (
-                    <Badge
-                      key={genre}
-                      variant="secondary"
-                      className="bg-black/50 hover:bg-black/60"
-                    >
-                      {genre}
-                    </Badge>
-                  ))}
-                </div>
-              )}
+              {show.artist.genres &&
+                Array.isArray(show.artist.genres) &&
+                show.artist.genres.length > 0 && (
+                  <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
+                    {(show.artist.genres as string[])
+                      .slice(0, 2)
+                      .map((genre: string) => (
+                        <Badge
+                          key={genre}
+                          variant="secondary"
+                          className="bg-black/50 hover:bg-black/60"
+                        >
+                          {genre}
+                        </Badge>
+                      ))}
+                  </div>
+                )}
             </div>
             <CardContent className="p-4">
               <h3 className="font-bold text-lg line-clamp-1">
@@ -257,7 +262,7 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
                   <div className="line-clamp-1">
                     <span>{show.venue.name}, </span>
                     <span className="text-muted-foreground">
-                      {show.venue.city}
+                      {show.venue.city || ""}
                     </span>
                   </div>
                 </div>
@@ -267,7 +272,8 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
                     <ThumbsUp className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span>
                       {show.setlist_songs.reduce(
-                        (sum, song) => sum + song.votes,
+                        (sum: number, song: { votes: number }) =>
+                          sum + (song.votes || 0),
                         0
                       )}{" "}
                       votes
@@ -278,9 +284,13 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
                     <div className="flex items-center">
                       <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
                       <span>
-                        {show.min_price === show.max_price ?
+                        {(
+                          show.min_price &&
+                          show.max_price &&
+                          show.min_price === show.max_price
+                        ) ?
                           `$${show.min_price}`
-                        : `$${show.min_price} - $${show.max_price}`}
+                        : `$${show.min_price || 0} - $${show.max_price || 0}`}
                       </span>
                     </div>
                   )}

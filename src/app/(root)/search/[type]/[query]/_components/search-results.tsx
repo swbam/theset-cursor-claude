@@ -7,8 +7,12 @@ import type { Album, SearchReturnType, Song } from "@/types";
 
 import { SliderCard } from "@/components/slider";
 import { SongListClient } from "@/components/song-list/song-list.client";
+import { CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { search } from "@/lib/jiosaavn-api";
+import { search } from "@/lib/spotify-api";
 
 type SearchResultsProps = {
   query: string;

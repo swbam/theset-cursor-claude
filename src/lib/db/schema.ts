@@ -2,11 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import { relations } from "drizzle-orm";
 import {
   boolean,
+  date,
   integer,
   json,
   numeric,
   pgTable,
   primaryKey,
+  serial,
   text,
   timestamp,
   uuid,
@@ -24,34 +26,39 @@ import { createTable } from "./table-creator";
  * -----------------------------------------------------------------------------------------------*/
 
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey(),
-  email: text("email").unique(),
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull(),
+  username: text("username"),
   created_at: timestamp("created_at").defaultNow(),
+  name: text("name"),
+  image: text("image"),
+  email_verified: timestamp("email_verified"),
+  last_updated: timestamp("last_updated").defaultNow(),
 });
 
-export const accounts = pgTable(
-  "account",
-  {
-    userId: uuid("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccount["type"]>().notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
-    scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
-  },
-  (account) => ({
-    compoundKey: primaryKey({
-      columns: [account.provider, account.providerAccountId],
-    }),
-  })
-);
+export const accounts = pgTable("accounts", {
+  userId: uuid("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  provider: text("provider").notNull(),
+  providerAccountId: text("providerAccountId").notNull(),
+  refresh_token: text("refresh_token"),
+  access_token: text("access_token"),
+  expires_at: integer("expires_at"),
+  token_type: text("token_type"),
+  scope: text("scope"),
+  id_token: text("id_token"),
+  session_state: text("session_state"),
+});
+
+export const sessions = pgTable("sessions", {
+  sessionToken: text("sessionToken").primaryKey(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
+});
 
 export const verificationTokens = pgTable(
   "verificationToken",
@@ -61,7 +68,7 @@ export const verificationTokens = pgTable(
     expires: timestamp("expires", { mode: "date" }).notNull(),
   },
   (vt) => ({
-    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+    compoundKey: primaryKey(vt.identifier, vt.token),
   })
 );
 
@@ -69,19 +76,17 @@ export const verificationTokens = pgTable(
  * App tables
  * -----------------------------------------------------------------------------------------------*/
 
-export const myPlaylists = createTable("playlist", {
+export const myPlaylists = pgTable("playlists", {
   id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
   userId: uuid("userId")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
-  // @ts-expect-error string is not assignable to type 'string[]'
-  songs: text("songs").array().default("{}").notNull(),
-  createdAt: timestamp("createdAt", { mode: "date" }).defaultNow().notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  songs: json("songs").default([]),
 });
 
-export const favorites = createTable("favorite", {
+export const favorites = pgTable("favorite", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("userId")
     .references(() => users.id, { onDelete: "cascade" })
@@ -95,27 +100,27 @@ export const favorites = createTable("favorite", {
 
 // Artists table
 export const artists = pgTable("artists", {
-  id: uuid("id").primaryKey(), // Spotify artist ID
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   image_url: text("image_url"),
   followers: integer("followers"),
   popularity: integer("popularity"),
-  genres: text("genres").array(),
+  genres: json("genres").default([]),
   spotify_url: text("spotify_url"),
   bio: text("bio"),
   monthly_listeners: integer("monthly_listeners"),
   verified: boolean("verified").default(false),
-  social_links: text("social_links").array(),
+  social_links: json("social_links").default({}),
   last_updated: timestamp("last_updated").defaultNow(),
 });
 
 // Venues table
 export const venues = pgTable("venues", {
-  id: uuid("id").primaryKey(), // Ticketmaster venue ID
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
-  city: text("city").notNull(),
+  city: text("city"),
   state: text("state"),
-  country: text("country").notNull(),
+  country: text("country"),
   latitude: numeric("latitude"),
   longitude: numeric("longitude"),
   timezone: text("timezone"),
@@ -130,80 +135,80 @@ export const venues = pgTable("venues", {
 
 // Shows table
 export const shows = pgTable("shows", {
-  id: uuid("id").primaryKey(), // Ticketmaster event ID
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
+  status: text("status"),
   date: timestamp("date").notNull(),
-  venue_id: uuid("venue_id").references(() => venues.id),
-  artist_id: uuid("artist_id").references(() => artists.id),
+  description: text("description"),
+  image_url: text("image_url"),
+  venue_id: text("venue_id").references(() => venues.id),
+  artist_id: text("artist_id").references(() => artists.id),
   ticket_url: text("ticket_url"),
   event_url: text("event_url"),
-  image_url: text("image_url"),
-  description: text("description"),
   min_price: numeric("min_price"),
   max_price: numeric("max_price"),
-  currency: text("currency").default("USD"),
+  currency: text("currency"),
   total_tickets: integer("total_tickets"),
   available_tickets: integer("available_tickets"),
-  status: text("status").default("scheduled"), // scheduled, on-sale, sold-out, cancelled
   last_updated: timestamp("last_updated").defaultNow(),
 });
 
 // Top tracks table (for initial setlist suggestions)
 export const topTracks = pgTable("top_tracks", {
-  id: uuid("id").primaryKey(), // Spotify track ID
-  artist_id: uuid("artist_id")
+  id: text("id").primaryKey(),
+  artist_id: text("artist_id")
     .references(() => artists.id)
     .notNull(),
   name: text("name").notNull(),
-  album: text("album"),
-  album_id: text("album_id"),
-  popularity: integer("popularity"),
+  spotify_id: text("spotify_id").notNull(),
   preview_url: text("preview_url"),
-  spotify_url: text("spotify_url"),
+  popularity: integer("popularity"),
   last_updated: timestamp("last_updated").defaultNow(),
 });
 
 // Setlists table
 export const setlists = pgTable("setlists", {
   id: uuid("id").defaultRandom().primaryKey(),
-  show_id: uuid("show_id")
+  show_id: text("show_id")
     .references(() => shows.id)
     .notNull(),
-  name: text("name").notNull(),
-  created_at: timestamp("created_at").defaultNow().notNull(),
-  updated_at: timestamp("updated_at").defaultNow().notNull(),
+  is_official: boolean("is_official").default(false),
+  total_votes: integer("total_votes").default(0),
+  created_at: timestamp("created_at").defaultNow(),
+  last_updated: timestamp("last_updated").defaultNow(),
 });
 
 // Setlist songs table (simplified from original schema to remove setlist table)
 export const setlistSongs = pgTable("setlist_songs", {
   id: uuid("id").defaultRandom().primaryKey(),
-  show_id: uuid("show_id")
+  show_id: text("show_id")
     .references(() => shows.id)
     .notNull(),
-  artist_id: uuid("artist_id")
-    .references(() => artists.id)
-    .notNull(),
+  setlist_id: uuid("setlist_id").references(() => setlists.id),
+  track_id: text("track_id").references(() => topTracks.id),
+  artist_id: text("artist_id").references(() => artists.id),
   artist_name: text("artist_name").notNull(),
   title: text("title").notNull(),
   votes: integer("votes").default(0).notNull(),
+  position: integer("position"),
   suggested_by: uuid("suggested_by").references(() => users.id),
-  created_at: timestamp("created_at").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 // Votes table
 export const votes = pgTable("votes", {
   id: uuid("id").defaultRandom().primaryKey(),
-  setlist_song_id: uuid("setlist_song_id")
-    .references(() => setlistSongs.id)
-    .notNull(),
   user_id: uuid("user_id")
     .references(() => users.id)
     .notNull(),
-  show_id: uuid("show_id")
+  setlist_song_id: uuid("setlist_song_id")
+    .references(() => setlistSongs.id)
+    .notNull(),
+  show_id: text("show_id")
     .references(() => shows.id)
     .notNull(),
-  vote_type: text("vote_type").notNull(), // 'up' or 'down'
-  created_at: timestamp("created_at").defaultNow().notNull(),
+  vote_type: text("vote_type").default("up"),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 // User followed artists (for Spotify integration)
@@ -212,10 +217,11 @@ export const userFollowedArtists = pgTable("user_followed_artists", {
   user_id: uuid("user_id")
     .references(() => users.id)
     .notNull(),
-  artist_id: uuid("artist_id")
+  artist_id: text("artist_id")
     .references(() => artists.id)
     .notNull(),
-  followed_at: timestamp("followed_at").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  last_updated: timestamp("last_updated").defaultNow(),
 });
 
 // User top artists (for Spotify integration)
@@ -224,11 +230,12 @@ export const userTopArtists = pgTable("user_top_artists", {
   user_id: uuid("user_id")
     .references(() => users.id)
     .notNull(),
-  artist_id: uuid("artist_id")
+  artist_id: text("artist_id")
     .references(() => artists.id)
     .notNull(),
   rank: integer("rank").notNull(),
-  last_updated: timestamp("last_updated").defaultNow().notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  last_updated: timestamp("last_updated").defaultNow(),
 });
 
 /* -----------------------------------------------------------------------------------------------
@@ -248,9 +255,9 @@ export type NewFavorite = typeof favorites.$inferInsert;
 export const artistsRelations = relations(artists, ({ many }) => ({
   shows: many(shows),
   topTracks: many(topTracks),
-  userFollowedArtists: many(userFollowedArtists),
-  userTopArtists: many(userTopArtists),
   setlistSongs: many(setlistSongs),
+  userTopArtists: many(userTopArtists),
+  userFollowedArtists: many(userFollowedArtists),
 }));
 
 export const venuesRelations = relations(venues, ({ many }) => ({
@@ -258,16 +265,25 @@ export const venuesRelations = relations(venues, ({ many }) => ({
 }));
 
 export const showsRelations = relations(shows, ({ one, many }) => ({
-  artist: one(artists, {
-    fields: [shows.artist_id],
-    references: [artists.id],
-  }),
   venue: one(venues, {
     fields: [shows.venue_id],
     references: [venues.id],
   }),
+  artist: one(artists, {
+    fields: [shows.artist_id],
+    references: [artists.id],
+  }),
+  setlists: many(setlists),
   setlistSongs: many(setlistSongs),
   votes: many(votes),
+}));
+
+export const setlistsRelations = relations(setlists, ({ one, many }) => ({
+  show: one(shows, {
+    fields: [setlists.show_id],
+    references: [shows.id],
+  }),
+  songs: many(setlistSongs),
 }));
 
 export const setlistSongsRelations = relations(
@@ -277,15 +293,31 @@ export const setlistSongsRelations = relations(
       fields: [setlistSongs.show_id],
       references: [shows.id],
     }),
+    setlist: one(setlists, {
+      fields: [setlistSongs.setlist_id],
+      references: [setlists.id],
+    }),
+    track: one(topTracks, {
+      fields: [setlistSongs.track_id],
+      references: [topTracks.id],
+    }),
     artist: one(artists, {
       fields: [setlistSongs.artist_id],
       references: [artists.id],
+    }),
+    user: one(users, {
+      fields: [setlistSongs.suggested_by],
+      references: [users.id],
     }),
     votes: many(votes),
   })
 );
 
 export const votesRelations = relations(votes, ({ one }) => ({
+  user: one(users, {
+    fields: [votes.user_id],
+    references: [users.id],
+  }),
   setlistSong: one(setlistSongs, {
     fields: [votes.setlist_song_id],
     references: [setlistSongs.id],
@@ -296,22 +328,30 @@ export const votesRelations = relations(votes, ({ one }) => ({
   }),
 }));
 
+export const userTopArtistsRelations = relations(userTopArtists, ({ one }) => ({
+  user: one(users, {
+    fields: [userTopArtists.user_id],
+    references: [users.id],
+  }),
+  artist: one(artists, {
+    fields: [userTopArtists.artist_id],
+    references: [artists.id],
+  }),
+}));
+
 export const userFollowedArtistsRelations = relations(
   userFollowedArtists,
   ({ one }) => ({
+    user: one(users, {
+      fields: [userFollowedArtists.user_id],
+      references: [users.id],
+    }),
     artist: one(artists, {
       fields: [userFollowedArtists.artist_id],
       references: [artists.id],
     }),
   })
 );
-
-export const userTopArtistsRelations = relations(userTopArtists, ({ one }) => ({
-  artist: one(artists, {
-    fields: [userTopArtists.artist_id],
-    references: [artists.id],
-  }),
-}));
 
 // Add these exports to match the import names
 export const top_tracks = topTracks;

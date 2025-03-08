@@ -4,8 +4,12 @@ import Link from "next/link";
 import type { Lang } from "@/types";
 
 import { siteConfig } from "@/config/site";
+import { useActiveLink } from "@/hooks/use-active-link";
+import { useOnClickOutside } from "@/hooks/use-click-outside";
+import { useLastFm } from "@/hooks/use-lastfm";
+import { useSongPreview } from "@/hooks/use-preview";
 import { getUser } from "@/lib/auth";
-import { getMegaMenu } from "@/lib/jiosaavn-api";
+import { getMegaMenu } from "@/lib/spotify-api";
 import { cn } from "@/lib/utils";
 import { SignedOut } from "../auth-control";
 import { Icons } from "../icons";

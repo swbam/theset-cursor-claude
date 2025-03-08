@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useEventListener } from "@/hooks/use-event-listner";
 import { useIsTyping } from "@/hooks/use-store";
-import { searchAll } from "@/lib/jiosaavn-api";
+import { searchAll } from "@/lib/spotify-api";
 import { cn, isMacOs } from "@/lib/utils";
 import { SearchAll } from "./search-all";
 

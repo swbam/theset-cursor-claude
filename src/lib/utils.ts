@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 
 import type { ClassValue } from "clsx";
-import type { ImageQuality, Quality, StreamQuality, Type } from "@/types";
 
 import { siteConfig } from "@/config/site";
 
@@ -71,17 +70,25 @@ export function rethrow(message: string): never {
 }
 
 /**
- * Formats the given duration in seconds to the given format
- * @param seconds The duration in seconds
- * @param format The format to format the duration in `hh:mm:ss` or `mm:ss`
- * @returns The formatted duration
+ * Formats a duration in seconds to a readable format
  */
-export function formatDuration(seconds: number, format: "hh:mm:ss" | "mm:ss") {
-  const date = new Date(seconds * 1000);
+export function formatDuration(
+  seconds: number,
+  format: "hh:mm:ss" | "mm:ss" = "mm:ss"
+) {
+  if (!seconds) return "0:00";
 
-  return format === "hh:mm:ss" ?
-      date.toISOString().slice(11, 19)
-    : date.toISOString().slice(14, 19);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+
+  if (format === "hh:mm:ss" || hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
 export function getHref(url: string, type: Type) {

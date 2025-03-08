@@ -3,6 +3,7 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   integer,
+  json,
   numeric,
   pgTable,
   primaryKey,
@@ -85,16 +86,11 @@ export const favorites = createTable("favorite", {
   userId: uuid("userId")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
-  // @ts-expect-error string is not assignable to type 'string[]'
-  songs: text("songs").array().unique().default("{}").notNull(),
-  // @ts-expect-error string is not assignable to type 'string[]'
-  albums: text("albums").array().unique().default("{}").notNull(),
-  // @ts-expect-error string is not assignable to type 'string[]'
-  playlists: text("playlists").array().unique().default("{}").notNull(),
-  // @ts-expect-error string is not assignable to type 'string[]'
-  artists: text("artists").array().unique().default("{}").notNull(),
-  // @ts-expect-error string is not assignable to type 'string[]'
-  podcasts: text("podcasts").array().unique().default("{}").notNull(),
+  songs: json("songs").default([]).notNull(),
+  albums: json("albums").default([]).notNull(),
+  playlists: json("playlists").default([]).notNull(),
+  artists: json("artists").default([]).notNull(),
+  shows: json("shows").default([]).notNull(),
 });
 
 // Artists table

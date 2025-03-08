@@ -1,122 +1,123 @@
-<div align=center>
+# TheSet - Concert Discovery and Setlist Voting Platform
 
-<!-- labels -->
+TheSet is a modern web application that helps music fans discover upcoming concerts and collaborate on creating the perfect setlists through voting. Built with Next.js, Supabase, and Spotify integration, TheSet provides a seamless experience for concert-goers to find shows, vote on songs, and connect with other fans.
 
-![][ci] ![][views] ![][stars] ![][forks] ![][issues] ![][license] ![][repo-size]
+## Features
 
-<!-- logo/title -->
+- **Concert Discovery**: Find upcoming shows by your favorite artists
+- **Setlist Voting**: Vote on songs you want to hear at upcoming concerts
+- **Spotify Integration**: Connect your Spotify account to see shows from artists you follow
+- **Real-time Updates**: See votes and suggestions in real-time
+- **Mobile Optimized**: Fully responsive design with swipe gestures and bottom navigation
+- **Dark Mode**: Beautiful dark theme for comfortable browsing
 
-<picture>
-  <source media="(prefers-color-scheme: dark, (max-width:300px))" srcset="./public/images/logo1920.png">
-  <source media="(prefers-color-scheme: light,(max-width:300px))" srcset="./public/images/logo1500.png">
-  <img src="./public/images/logo1920.png" width="300px" alt="infinitunes">
-</picture>
+## Tech Stack
 
-### [WIP] 🎵 A Simple Music Player Web App made with ▲ Next.js + Tailwind.
+- **Framework**: Next.js (App Router)
+- **UI Components**: ShadCN UI and Tailwind CSS
+- **Database**: Supabase with Drizzle ORM
+- **Authentication**: Supabase Auth with Spotify OAuth
+- **APIs**: Ticketmaster Discovery API, Spotify API
+- **Real-time**: WebSockets via Supabase Realtime
+- **Caching**: Redis for server-side, TanStack Query for client-side
 
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://graph.org/file/12ea4beff2367f40f13ce.png">
-  <source media="(prefers-color-scheme: dark)" srcset="https://graph.org/file/16937ebb693470d804f31.png">
-  <img src="https://graph.org/file/12ea4beff2367f40f13ce.png" alt="infinitunes">
-</picture>
+## Getting Started
 
-**[<kbd> <br> &nbsp;**Live Demo**&nbsp; <br> </kbd>][site]**
+### Prerequisites
 
-## Building from Source
+- Node.js 18+ or Bun
+- Supabase account
+- Spotify Developer account
+- Ticketmaster Developer account
 
-</div>
+### Installation
 
-- Fetch latest source code from master branch.
+1. Clone the repository:
 
-```
-git clone https://github.com/rajput-hemant/infinitunes
-cd infinitunes
-```
+   ```bash
+   git clone https://github.com/yourusername/theset.git
+   cd theset
+   ```
 
-- Rename **.env.example** => **.env.local**, add your own environment variables.
+2. Install dependencies:
 
-- Run the app with VS Code or the command line:
+   ```bash
+   npm install
+   # or
+   bun install
+   ```
 
-```
-bun i || pnpm i || npm i || yarn
-bun dev || pnpm dev || npm run dev || yarn dev
-```
+3. Copy the environment variables:
 
-<div align=center>
+   ```bash
+   cp .env.example .env
+   ```
 
-### Docker and Makefile
+4. Update the `.env` file with your API keys and credentials.
 
-</div>
+5. Run the development server:
 
-- Build the Docker Image and start the container:
+   ```bash
+   npm run dev
+   # or
+   bun dev
+   ```
 
-```
-make build
-make start
-```
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- Stop the Docker container:
+### Database Setup
 
-```
-make stop
-```
+1. Create a Supabase project
+2. Run the database migrations:
+   ```bash
+   npm run db:migrate
+   # or
+   bun db:migrate
+   ```
 
-<div align=center>
+## Project Structure
 
-### Deploy Your Own
+- `src/app/` - Next.js App Router pages and layouts
+- `src/components/` - Reusable UI components
+- `src/lib/` - Utility functions and API clients
+- `src/lib/db/` - Database schema and queries
+- `src/lib/api/` - API client implementations
+- `src/hooks/` - Custom React hooks
+- `src/config/` - Application configuration
 
-You can deploy your own hosted version of `infinitunes`. Just click the link below to deploy a ready-to-go version to Vercel.
+## Key Features Implementation
 
-[![Deploy with Vercel](https://vercel.com/button)][deploy]
+### Concert Discovery
 
-#### [JioSaavn API (Unofficial)][api] by [me][cc], [API Docs][api-docs]
+The app uses the Ticketmaster API to fetch upcoming concerts and venue information. Users can filter shows by genre, location, date, and price range.
 
-## Star History
+### Setlist Voting
 
-<a href="https://star-history.com/#rajput-hemant/infinitunes">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=rajput-hemant/infinitunes&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=rajput-hemant/infinitunes" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=rajput-hemant/infinitunes" />
- </picture>
-</a>
+Users can vote on songs they want to hear at upcoming concerts. The voting system is implemented using Supabase's real-time capabilities, allowing for instant updates across all clients.
 
-## Disclaimer
+### Spotify Integration
 
-This project is independent of any affiliation with JioSaavn or its associated partners. It is created solely for educational purposes. Usage is at your own discretion, and the developer disclaims responsibility for any misuse or potential damage resulting from the use of this program. Please refrain from duplicating this project for commercial purposes.
+Users can connect their Spotify accounts to see shows from artists they follow and get personalized recommendations based on their listening history.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Contributors:
+## Acknowledgments
 
-[![][contributors]][contributors-graph]
-
-_Note: It may take up to 24h for the [contrib.rocks][contrib-rocks] plugin to update because it's refreshed once a day._
-
-</div>
-
-<!----------------------------------{ Labels }--------------------------------->
-
-[views]: https://komarev.com/ghpvc/?username=infinitunes&label=view%20counter&color=red&style=flat
-[repo-size]: https://img.shields.io/github/repo-size/rajput-hemant/infinitunes
-[issues]: https://img.shields.io/github/issues-raw/rajput-hemant/infinitunes
-[license]: https://img.shields.io/github/license/rajput-hemant/infinitunes
-[forks]: https://img.shields.io/github/forks/rajput-hemant/infinitunes?style=flat
-[stars]: https://img.shields.io/github/stars/rajput-hemant/infinitunes
-[contributors]: https://contrib.rocks/image?repo=rajput-hemant/infinitunes&max=500
-[contributors-graph]: https://github.com/rajput-hemant/infinitunes/graphs/contributors
-[contrib-rocks]: https://contrib.rocks/preview?repo=rajput-hemant%2Finfinitunes
-[ci]: https://github.com/rajput-hemant/infinitunes/actions/workflows/ci.yml/badge.svg
-
-<!-----------------------------------{ Links }---------------------------------->
-
-[site]: https://infinitunes.vercel.app
-[deploy]: https://vercel.com/new/clone?repository-url=https://github.com/rajput-hemant/infinitunes&env=NEXT_PUBLIC_APP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,JIOSAAVN_API_URL,NEXT_PUBLIC_JIOSAAVN_API_URL,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GITHUB_CLIENT_ID,GITHUB_CLIENT_SECRET,DATABASE_URL&project-name=infinitunes&repo-name=infinitunes
-
-<!------------------------------------{ api }----------------------------------->
-
-[api]: https://github.com/rajput-hemant/jiosaavn-api-ts
-[api-docs]: https://docs-jiosaavn.netlify.app/
-[cc]: https://github.com/rajput-hemant
+- [Next.js](https://nextjs.org/)
+- [Supabase](https://supabase.io/)
+- [Spotify API](https://developer.spotify.com/documentation/web-api/)
+- [Ticketmaster API](https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/)
+- [ShadCN UI](https://ui.shadcn.com/)
+- [Tailwind CSS](https://tailwindcss.com/)

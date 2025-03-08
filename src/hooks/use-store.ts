@@ -1,60 +1,82 @@
-import { atom, createStore, useAtom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { atom, useAtom } from "jotai";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
-import type { ImageQuality, Queue, StreamQuality } from "@/types";
+import type { User } from "next-auth";
 
-const store = createStore();
+// Create a custom storage that works in both client and server
+const storage = createJSONStorage<unknown>(() => {
+  return typeof window !== "undefined" ? localStorage : undefined;
+});
 
-const queueAtom = atomWithStorage<Queue[]>("queue", []);
+// Create a store instance
+const store = {};
 
-export function useQueue() {
-  return useAtom(queueAtom, { store });
+// User typing state for keyboard shortcuts
+const isTypingAtom = atom(false);
+
+export function useIsTyping() {
+  return useAtom(isTypingAtom, { store });
 }
 
-const currentSongIndexAtom = atomWithStorage("current_song_index", 0);
-
-export function useCurrentSongIndex() {
-  return useAtom(currentSongIndexAtom, { store });
-}
-
-const streamQualityAtom = atomWithStorage<StreamQuality>(
-  "stream_quality",
-  "excellent"
-);
+// User preferences
+const streamQualityAtom = atomWithStorage("stream_quality", "high", storage);
 
 export function useStreamQuality() {
   return useAtom(streamQualityAtom, { store });
 }
 
-const downloadQualityAtom = atomWithStorage<StreamQuality>(
-  "download_quality",
-  "excellent"
+// Setlist voting state
+const activeSetlistAtom = atomWithStorage("active_setlist", "", storage);
+
+export function useActiveSetlist() {
+  return useAtom(activeSetlistAtom, { store });
+}
+
+// User's recent votes
+const recentVotesAtom = atomWithStorage(
+  "recent_votes",
+  {} as Record<string, number>,
+  storage
 );
 
-export function useDownloadQuality() {
-  return useAtom(downloadQualityAtom, { store });
+export function useRecentVotes() {
+  return useAtom(recentVotesAtom, { store });
 }
 
-const imageQualityAtom = atomWithStorage<ImageQuality>("image_quality", "high");
+// User's filter preferences for shows
+const showFiltersAtom = atomWithStorage(
+  "show_filters",
+  {
+    mainGenre: "",
+    subGenres: [],
+    location: "",
+    radius: "50",
+    date: "",
+    minPrice: "",
+    maxPrice: "",
+    sort: "date,asc",
+  },
+  storage
+);
 
-export function useImageQuality() {
-  return useAtom(imageQualityAtom, { store });
+export function useShowFilters() {
+  return useAtom(showFiltersAtom, { store });
 }
 
-const playerCurrentTimeAtom = atom(0);
+// User's recently viewed shows
+const recentlyViewedShowsAtom = atomWithStorage(
+  "recently_viewed_shows",
+  [] as Array<{
+    id: string;
+    name: string;
+    artistName: string;
+    date: string;
+    imageUrl: string;
+  }>,
+  storage,
+  { getSize: () => 10 } // Limit to 10 items
+);
 
-export function usePlayerCurrentTime() {
-  return useAtom(playerCurrentTimeAtom, { store });
-}
-
-const isPlayingAtom = atom(false);
-
-export function useIsPlayerInit() {
-  return useAtom(isPlayingAtom, { store });
-}
-
-const isTyping = atom(false);
-
-export function useIsTyping() {
-  return useAtom(isTyping, { store });
+export function useRecentlyViewedShows() {
+  return useAtom(recentlyViewedShowsAtom, { store });
 }

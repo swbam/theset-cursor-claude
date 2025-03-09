@@ -1,46 +1,63 @@
-import { search } from "@/lib/spotify-api";
-import { SearchNavbar } from "./_components/search-navbar";
-import { SearchResults } from "./_components/search-results";
+import type { Artist } from "@/types";
 
-type SearchPageProps = {
-  params: Promise<{
-    type: "song" | "album" | "playlist" | "artist" | "show";
+import { SearchResults } from "@/app/(root)/search/[type]/[query]/_components/search-results";
+import { spotify } from "@/lib/spotify-api";
+
+export const runtime = "edge";
+
+interface ArtistSearchResult {
+  total: number;
+  results: Artist[];
+}
+
+interface SearchParams {
+  params: {
     query: string;
-  }>;
-};
+    type: string;
+  };
+}
 
-export default async function SearchPage({ params }: SearchPageProps) {
-  const { query, type } = await params;
+export async function generateMetadata({ params }: SearchParams) {
+  const { query } = params;
 
-  const searchRes = await search(query, type);
+  return {
+    title: `Search results for "${decodeURIComponent(query)}"`,
+    description: `Find artists and concerts matching your search for "${decodeURIComponent(query)}"`,
+  };
+}
+
+export default async function SearchPage({ params }: SearchParams) {
+  const { query, type } = params;
+
+  // Ensure we only search for artists
+  const searchType = "artist";
+  const decodedQuery = decodeURIComponent(query);
+
+  // Search for artists using Spotify API
+  const artistResults = await spotify.searchArtists(decodedQuery);
+
+  // Format results
+  const searchResults = {
+    artists: {
+      total: artistResults.artists.total,
+      results: artistResults.artists.items.map((artist) => ({
+        id: artist.id,
+        name: artist.name,
+        image: artist.images?.[0]?.url || "/images/artist-placeholder.jpg",
+        type: "artist",
+        url: `/artists/${artist.id}`,
+        followers: artist.followers?.total || 0,
+        popularity: artist.popularity || 0,
+        genres: artist.genres || [],
+      })),
+    },
+  };
 
   return (
-    <div className="mb-4 space-y-4">
-      <header>
-        <h1 className="text-center font-heading text-2xl capitalize drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-3xl md:text-start md:text-4xl">
-          Search Results for{" "}
-          <span className="block md:inline-block">
-            &apos;
-            <em className="font-bold underline underline-offset-4">
-              {query.replaceAll("%20", " ")}
-            </em>
-            &apos;
-          </span>
-        </h1>
-
-        <p className="text-center text-sm text-muted-foreground md:text-start">
-          {searchRes.total} Results
-        </p>
-      </header>
-
-      <main className="space-y-4 border-t">
-        <SearchNavbar type={type} query={query} />
-        <SearchResults
-          type={type}
-          query={query}
-          initialSearchResults={searchRes}
-        />
-      </main>
-    </div>
+    <SearchResults
+      query={decodedQuery}
+      type={searchType}
+      searchResults={searchResults}
+    />
   );
 }

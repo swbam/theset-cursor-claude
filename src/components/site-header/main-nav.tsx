@@ -2,10 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 
 import type { MegaMenu } from "@/types";
 
-import { cn, getHref } from "@/lib/utils";
+import { Icons } from "@/components/icons";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,110 +15,92 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "../ui/navigation-menu";
-import { Separator } from "../ui/separator";
+} from "@/components/ui/navigation-menu";
+import { siteConfig } from "@/config/site";
+import { cn, getHref } from "@/lib/utils";
 
 type MainNavProps = {
-  megaMenu: MegaMenu;
+  megaMenu?: MegaMenu;
   className?: string;
 };
 
 export function MainNav({ className, megaMenu }: MainNavProps) {
+  const menuItems = siteConfig.mainNav;
+
   return (
-    <NavigationMenu className={className}>
-      <NavigationMenuList>
-        <NavigationMenuItem>
-          <Link href="/">
-            <NavigationMenuTrigger>Music</NavigationMenuTrigger>
-          </Link>
+    <div className="hidden gap-6 lg:flex">
+      <Link
+        href="/"
+        className="hidden items-center space-x-2 lg:flex"
+        aria-label={siteConfig.name}
+      >
+        <Icons.logo className="h-6 w-6" />
+        <span className="hidden font-heading font-bold lg:inline-block">
+          {siteConfig.name}
+        </span>
+      </Link>
 
-          <NavigationMenuContent className="p-6 md:w-[400px] lg:w-[1000px]">
-            <h2 className="font-heading text-2xl drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-2xl md:text-4xl">
-              What&apos;s Hot on Infinitunes
-            </h2>
-
-            <Separator className="my-2" />
-
-            <div className="grid grid-cols-3 space-x-6 p-2 text-sm font-medium">
-              <div className="border-r">
-                <h4 className="font-heading text-2xl">New releases</h4>
-
-                {megaMenu.new_releases.map(({ name, url }) => (
-                  <ListItem
-                    key={name}
-                    title={name}
-                    href={
-                      url.includes("song") ?
-                        getHref(url, "song")
-                      : getHref(url, "album")
-                    }
-                  >
-                    {name}
-                  </ListItem>
-                ))}
-              </div>
-
-              <div className="border-r">
-                <h4 className="font-heading text-2xl">Top Playlist</h4>
-
-                {megaMenu.top_playlists.map(({ name, url }) => (
-                  <ListItem
-                    key={name}
-                    title={name}
-                    href={getHref(url, "playlist")}
-                  >
-                    {name}
-                  </ListItem>
-                ))}
-              </div>
-
-              <div>
-                <h4 className="font-heading text-2xl">Top Artists</h4>
-
-                {megaMenu.top_artists.map(({ name, url }) => (
-                  <ListItem
-                    key={name}
-                    title={name}
-                    href={getHref(url, "artist")}
-                  >
-                    {name}
-                  </ListItem>
-                ))}
-              </div>
-            </div>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-
-        <NavigationMenuItem>
-          <Link href="/show" legacyBehavior passHref>
-            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Podcasts
-            </NavigationMenuLink>
-          </Link>
-        </NavigationMenuItem>
-      </NavigationMenuList>
-    </NavigationMenu>
+      <NavigationMenu className={className}>
+        <NavigationMenuList>
+          {menuItems.map((item) => (
+            <NavigationMenuItem key={item.title}>
+              {item.items ?
+                <>
+                  <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                      {item.items.map((item) => (
+                        <ListItem
+                          key={item.title}
+                          title={item.title}
+                          href={item.href}
+                        >
+                          {item.description}
+                        </ListItem>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </>
+              : <Link href={item.href} legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    {item.title}
+                  </NavigationMenuLink>
+                </Link>
+              }
+            </NavigationMenuItem>
+          ))}
+        </NavigationMenuList>
+      </NavigationMenu>
+    </div>
   );
 }
 
-const ListItem = React.forwardRef<
-  React.ElementRef<typeof Link>,
-  React.ComponentPropsWithoutRef<typeof Link>
->(({ className, children, ...props }, ref) => {
-  return (
-    <NavigationMenuLink asChild>
-      <Link
-        ref={ref}
-        className={cn(
-          "block space-y-1 rounded-md py-1.5 text-muted-foreground duration-150 hover:text-secondary-foreground",
-          className
-        )}
-        {...props}
-      >
-        <span className="line-clamp-1">{children}</span>
-      </Link>
-    </NavigationMenuLink>
-  );
-});
+interface ListItemProps extends React.PropsWithChildren {
+  title: string;
+  href: string;
+}
+
+const ListItem = React.forwardRef<React.ElementRef<"a">, ListItemProps>(
+  ({ title, href, children }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink asChild>
+          <Link
+            ref={ref}
+            href={href}
+            className={cn(
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+            )}
+          >
+            <div className="text-sm font-medium leading-none">{title}</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+              {children}
+            </p>
+          </Link>
+        </NavigationMenuLink>
+      </li>
+    );
+  }
+);
 
 ListItem.displayName = "ListItem";

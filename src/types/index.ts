@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { AllSearch as SpotifyAllSearch } from "@/lib/spotify-api";
 
 export type AllSearch = SpotifyAllSearch;
@@ -17,9 +19,9 @@ export type SiteConfig = {
 // User related types
 export interface User {
   id: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
+  name: string;
+  email: string;
+  image: string;
 }
 
 export interface Session {
@@ -31,52 +33,38 @@ export interface Session {
 export interface Artist {
   id: string;
   name: string;
-  image_url?: string;
+  image: string;
+  type: string;
+  url: string;
   followers?: number;
   popularity?: number;
   genres?: string[];
-  spotify_url?: string;
-  bio?: string;
-  monthly_listeners?: number;
-  verified?: boolean;
-  social_links?: Record<string, string>;
 }
 
 export interface Venue {
   id: string;
   name: string;
-  city?: string;
-  state?: string;
-  country?: string;
+  city: string;
+  address?: string;
   latitude?: number;
   longitude?: number;
-  timezone?: string;
   capacity?: number;
-  address?: string;
-  postal_code?: string;
-  url?: string;
-  parking_info?: string;
-  accessible_seating_info?: string;
+  image_url?: string;
 }
 
 export interface Show {
   id: string;
-  name: string;
+  title: string;
   date: Date;
-  venue_id?: string;
-  artist_id?: string;
-  ticket_url?: string;
-  event_url?: string;
+  artist_id: string;
+  venue_id: string;
   image_url?: string;
-  description?: string;
   min_price?: number;
   max_price?: number;
-  currency?: string;
-  total_tickets?: number;
-  available_tickets?: number;
-  status?: string;
-  venue: Venue;
-  artist: Artist;
+  ticket_url?: string;
+  artist?: Artist;
+  venue?: Venue;
+  setlist_songs?: SetlistSong[];
 }
 
 export interface TopTrack {
@@ -91,20 +79,48 @@ export interface TopTrack {
 export interface SetlistSong {
   id: string;
   show_id: string;
-  setlist_id?: string;
-  track_id?: string;
-  artist_id?: string;
+  song_name: string;
   artist_name: string;
-  title: string;
   votes: number;
-  position?: number;
-  suggested_by?: string;
+  position: number;
+  user_has_voted?: boolean;
 }
 
 export interface Setlist {
-  id: string;
   show_id: string;
-  is_official?: boolean;
-  total_votes?: number;
   songs: SetlistSong[];
 }
+
+// Form schemas
+export const artistFormSchema = z.object({
+  name: z.string().min(1, "Artist name is required"),
+  image: z.string().url("Must be a valid URL").optional(),
+  genres: z.array(z.string()).optional(),
+});
+
+export const venueFormSchema = z.object({
+  name: z.string().min(1, "Venue name is required"),
+  city: z.string().min(1, "City is required"),
+  address: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  capacity: z.number().int().positive().optional(),
+  image_url: z.string().url("Must be a valid URL").optional(),
+});
+
+export const showFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  date: z.date(),
+  artist_id: z.string().min(1, "Artist is required"),
+  venue_id: z.string().min(1, "Venue is required"),
+  image_url: z.string().url("Must be a valid URL").optional(),
+  min_price: z.number().nonnegative().optional(),
+  max_price: z.number().nonnegative().optional(),
+  ticket_url: z.string().url("Must be a valid URL").optional(),
+});
+
+export const setlistSongFormSchema = z.object({
+  song_name: z.string().min(1, "Song name is required"),
+  artist_name: z.string().min(1, "Artist name is required"),
+  position: z.number().int().nonnegative(),
+});

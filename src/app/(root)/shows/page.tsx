@@ -16,12 +16,13 @@ import {
 } from "drizzle-orm";
 import { CalendarIcon, DollarSign, MapPinIcon, ThumbsUp } from "lucide-react";
 
-import { ShowFilters } from "@/components/show-filters";
+import { ShowFilters } from "@/app/(root)/_components/show-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { db } from "@/lib/db";
+import { artists, setlistSongs, shows, venues } from "@/lib/db/schema";
 
 export const metadata = {
   title: "Discover Shows",
@@ -54,34 +55,27 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
   } = searchParams;
 
   // Base query
-  let query = db.query.shows.findMany({
-    with: {
-      artist: true,
-      venue: true,
-      setlist_songs: {
-        columns: {
-          votes: true,
-        },
-      },
-    },
-  });
+  let showsQuery = db
+    .select()
+    .from(shows)
+    .leftJoin(artists, eq(shows.artist_id, artists.id))
+    .leftJoin(venues, eq(shows.venue_id, venues.id))
+    .leftJoin(setlistSongs, eq(shows.id, setlistSongs.show_id));
 
-  // Apply filters
-  const filters = [];
+  const whereConditions = [];
 
   // Genre filters
   if (mainGenre && mainGenre !== "All Genres") {
-    // Use json containment operator for genres array
-    filters.push(sql`${db.query.artists.genres}::jsonb ? ${mainGenre}`);
+    whereConditions.push(sql`${artists.genres}::jsonb ? ${mainGenre}`);
 
     if (subGenres) {
       const subGenreList = subGenres.split(",");
       const subGenreFilters = subGenreList.map(
-        (genre: string) => sql`${db.query.artists.genres}::jsonb ? ${genre}`
+        (genre: string) => sql`${artists.genres}::jsonb ? ${genre}`
       );
 
       if (subGenreFilters.length > 0) {
-        filters.push(or(...subGenreFilters));
+        whereConditions.push(or(...subGenreFilters));
       }
     }
   }
@@ -93,19 +87,19 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
     // If we have coordinates for the location
     if (location.includes(",")) {
       const [lat, lng] = location.split(",").map(Number);
-      filters.push(
+      whereConditions.push(
         sql`ST_DWithin(
           ST_MakePoint(${lng}, ${lat})::geography,
-          ST_MakePoint(${db.query.venues.longitude}, ${db.query.venues.latitude})::geography,
+          ST_MakePoint(${venues.longitude}, ${venues.latitude})::geography,
           ${searchRadius * 1609.34}
         )`
       );
     } else {
       // Search by city name
-      filters.push(
+      whereConditions.push(
         or(
-          ilike(db.query.venues.city, `%${location}%`),
-          ilike(db.query.venues.name, `%${location}%`)
+          ilike(venues.city, `%${location}%`),
+          ilike(venues.name, `%${location}%`)
         )
       );
     }
@@ -117,15 +111,12 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
     const nextDay = new Date(selectedDate);
     nextDay.setDate(nextDay.getDate() + 1);
 
-    filters.push(
-      and(
-        gte(db.query.shows.date, selectedDate),
-        lte(db.query.shows.date, nextDay)
-      )
+    whereConditions.push(
+      and(gte(shows.date, selectedDate), lte(shows.date, nextDay))
     );
   } else {
     // Default to upcoming shows
-    filters.push(gte(db.query.shows.date, new Date()));
+    whereConditions.push(gte(shows.date, new Date()));
   }
 
   // Price filter
@@ -133,26 +124,23 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
     const min = parseInt(minPrice || "0");
     const max = parseInt(maxPrice || "1000");
 
-    filters.push(
-      and(
-        gte(db.query.shows.min_price || 0, min),
-        lte(db.query.shows.max_price || 1000, max)
-      )
+    whereConditions.push(
+      and(gte(shows.min_price, min), lte(shows.max_price, max))
     );
   }
 
   // Apply all filters
-  if (filters.length > 0) {
-    query = query.where(and(...filters));
+  if (whereConditions.length > 0) {
+    showsQuery = showsQuery.where(and(...whereConditions));
   }
 
   // Apply sorting
   switch (sort) {
     case "date-desc":
-      query = query.orderBy(desc(db.query.shows.date));
+      showsQuery = showsQuery.orderBy(desc(shows.date));
       break;
     case "votes-desc":
-      query = query.orderBy(
+      showsQuery = showsQuery.orderBy(
         desc(sql`(
         SELECT SUM(votes) 
         FROM setlist_songs 
@@ -161,35 +149,53 @@ async function getFilteredShows(searchParams: ShowsPageProps["searchParams"]) {
       );
       break;
     case "popularity-desc":
-      query = query.orderBy(desc(db.query.artists.popularity));
+      showsQuery = showsQuery.orderBy(desc(artists.popularity));
       break;
     case "price-asc":
-      query = query.orderBy(asc(db.query.shows.min_price));
+      showsQuery = showsQuery.orderBy(asc(shows.min_price));
       break;
     case "price-desc":
-      query = query.orderBy(desc(db.query.shows.max_price));
+      showsQuery = showsQuery.orderBy(desc(shows.max_price));
       break;
     case "distance-asc":
       if (location?.includes(",")) {
         const [lat, lng] = location.split(",").map(Number);
-        query = query.orderBy(
+        showsQuery = showsQuery.orderBy(
           asc(sql`
           ST_Distance(
             ST_MakePoint(${lng}, ${lat})::geography,
-            ST_MakePoint(${db.query.venues.longitude}, ${db.query.venues.latitude})::geography
+            ST_MakePoint(${venues.longitude}, ${venues.latitude})::geography
           )
         `)
         );
       }
       break;
     default: // date-asc
-      query = query.orderBy(asc(db.query.shows.date));
+      showsQuery = showsQuery.orderBy(asc(shows.date));
   }
 
   // Limit results
-  query = query.limit(50);
+  showsQuery = showsQuery.limit(50);
 
-  return query;
+  // Execute query
+  const results = await showsQuery;
+
+  // Process results to get shows with artists and venues
+  const processedShows = results.map((row) => {
+    return {
+      ...row.shows,
+      artist: row.artists,
+      venue: row.venues,
+      setlist_songs: row[setlistSongs._.name] ? [row[setlistSongs._.name]] : [],
+    };
+  });
+
+  // Remove duplicates (due to left join with setlist_songs)
+  const uniqueShows = Array.from(
+    new Map(processedShows.map((show) => [show.id, show])).values()
+  );
+
+  return uniqueShows;
 }
 
 async function FilteredShows({ searchParams }: ShowsPageProps) {
@@ -215,15 +221,16 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
               <Image
                 src={
                   show.image_url ||
-                  show.artist.image_url ||
+                  show.artist?.image_url ||
+                  "" ||
                   "/images/concert-placeholder.jpg"
                 }
-                alt={show.artist.name}
+                alt={show.artist?.name || "Artist"}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
-              {show.artist.genres &&
+              {show.artist?.genres &&
                 Array.isArray(show.artist.genres) &&
                 show.artist.genres.length > 0 && (
                   <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
@@ -243,7 +250,7 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
             </div>
             <CardContent className="p-4">
               <h3 className="font-bold text-lg line-clamp-1">
-                {show.artist.name}
+                {show.artist?.name || "Unknown Artist"}
               </h3>
 
               <div className="mt-2 space-y-2">
@@ -260,9 +267,9 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
                 <div className="flex items-center text-sm">
                   <MapPinIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                   <div className="line-clamp-1">
-                    <span>{show.venue.name}, </span>
+                    <span>{show.venue?.name || "Unknown Venue"}, </span>
                     <span className="text-muted-foreground">
-                      {show.venue.city || ""}
+                      {show.venue?.city || ""}
                     </span>
                   </div>
                 </div>
@@ -271,11 +278,12 @@ async function FilteredShows({ searchParams }: ShowsPageProps) {
                   <div className="flex items-center">
                     <ThumbsUp className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span>
-                      {show.setlist_songs.reduce(
-                        (sum: number, song: { votes: number }) =>
-                          sum + (song.votes || 0),
-                        0
-                      )}{" "}
+                      {Array.isArray(show.setlist_songs) ?
+                        show.setlist_songs.reduce(
+                          (sum: number, song: any) => sum + (song?.votes || 0),
+                          0
+                        )
+                      : 0}{" "}
                       votes
                     </span>
                   </div>

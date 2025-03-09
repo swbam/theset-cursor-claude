@@ -1,5 +1,14 @@
+import Image from "next/image";
 import Link from "next/link";
-import { BadgeCheck } from "lucide-react";
+import {
+  BadgeCheck,
+  Check,
+  Dot,
+  Music,
+  Share2,
+  Star,
+  Users,
+} from "lucide-react";
 
 import type {
   Album,
@@ -10,8 +19,10 @@ import type {
   Playlist,
   ShowDetails,
   Song,
+  User,
 } from "@/types";
 
+import { FavoriteButton } from "@/components/favorite-button";
 import { getUser } from "@/lib/auth";
 import { cn, formatDuration, getHref, getImageSrc } from "@/lib/utils";
 import { getUserFavorites, getUserPlaylists } from "@/server/db/client/queries";
@@ -46,90 +57,49 @@ export async function DetailsHeader({ item }: DetailsHeaderProps) {
   }
 
   return (
-    <figure className="mb-10 flex flex-col items-center justify-center gap-4 lg:flex-row lg:justify-start lg:gap-10">
-      <div
-        className={cn(
-          "relative aspect-square w-44 shrink-0 overflow-hidden rounded-md border p-1 shadow-md transition-[width_shadow] duration-500 hover:shadow-xl md:w-56 xl:w-64",
-          (item.type === "artist" || item.type === "label") && "rounded-full"
-        )}
-      >
-        <ImageWithFallback
-          src={getImageSrc(item.image, "high")}
-          width={200}
-          height={200}
-          alt={item.name}
-          fallback={`/images/placeholder/${item.type}.jpg`}
-          className={cn(
-            "size-full rounded-md object-cover",
-            (item.type === "artist" || item.type === "label") && "scale-105"
-          )}
-        />
+    <div className="container flex flex-col pb-8 pt-0 md:gap-6 md:pb-6 md:pt-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-9">
+        <div className="relative h-60 w-60 shrink-0 overflow-hidden rounded-lg md:h-[280px] md:w-[280px]">
+          <Image
+            src={getImageSrc(item.image, "high")}
+            alt={item.name}
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 768px) 240px, 280px"
+          />
+        </div>
 
-        <Skeleton
-          className={cn(
-            "absolute inset-0 -z-10",
-            (item.type === "artist" || item.type === "label") && "rounded-full"
-          )}
-        />
-      </div>
+        <div className="flex flex-1 flex-col space-y-1.5">
+          <h1 className="flex items-center gap-2 font-heading text-2xl font-bold drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent md:text-4xl">
+            {"explicit" in item && item.explicit && (
+              <Badge className="mr-2 rounded px-1 py-0 font-bold">E</Badge>
+            )}
+            {item.name}
 
-      <figcaption className="flex w-full flex-col items-center justify-center overflow-hidden font-medium lg:items-start lg:gap-2 lg:p-1">
-        <h1
-          title={item.name}
-          className="flex items-center truncate text-center font-heading text-xl drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-2xl md:text-3xl lg:text-start"
-        >
-          {"explicit" in item && item.explicit && (
-            <Badge className="mr-2 rounded px-1 py-0 font-bold">E</Badge>
-          )}
-          {item.name}
+            {"is_verified" in item && item.is_verified && (
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                <Check className="h-3.5 w-3.5 text-background" />
+              </span>
+            )}
+          </h1>
 
-          {"is_verified" in item && item.is_verified && (
-            <BadgeCheck
-              fill="#3b82f6"
-              className="ml-2 inline-block text-background"
-            />
-          )}
-        </h1>
-
-        <div className="space-y-2 text-sm text-muted-foreground">
-          {(item.type === "song" || item.type === "episode") && (
-            <>
-              {item.type === "song" && (
-                <p>
-                  <Link
-                    href={getHref(item.album_url, "album")}
-                    className="hover:text-foreground"
-                  >
-                    {item.album}
-                  </Link>
-                  {" by "}
-                  {item.artist_map.primary_artists.map(
-                    ({ id, name, url }, i, arr) => (
-                      <Link
-                        key={id}
-                        href={getHref(url, "artist")}
-                        className="hover:text-foreground"
-                      >
-                        {name}
-                        {i !== arr.length - 1 && ", "}
-                      </Link>
-                    )
-                  )}
-                </p>
+          <div className="mt-1 flex flex-col md:flex-row md:items-center md:gap-6">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="font-medium text-foreground">
+                {item.type === "show" ? "Concert" : item.type}
+              </span>
+              {item.fan_count && (
+                <>
+                  <Dot className="h-3 w-3" />
+                  <div className="flex items-center">
+                    <Users className="mr-1 h-3.5 w-3.5" />{" "}
+                    {item.fan_count.toLocaleString()} Listeners
+                  </div>
+                </>
               )}
-
-              {item.type === "episode" && <p>{item.header_desc}</p>}
-
-              <p className="capitalize">
-                {item.type}
-                {" · "}
-                {item.play_count.toLocaleString()} Plays{" · "}
-                {formatDuration(item.duration, "mm:ss")}
-                {" · "}
-                {item.language}
-              </p>
-            </>
-          )}
+            </div>
+          </div>
 
           {item.type === "album" && (
             <>
@@ -151,7 +121,9 @@ export async function DetailsHeader({ item }: DetailsHeaderProps) {
                 {" · "}
                 {item.play_count.toLocaleString()} Plays
                 {" · "}
-                {formatDuration(item.duration, "mm:ss")}
+                {item.duration ?
+                  formatDuration(item.duration, "mm:ss")
+                : "Unknown Duration"}
               </p>
 
               <div className="text-center lg:hidden">
@@ -179,11 +151,31 @@ export async function DetailsHeader({ item }: DetailsHeaderProps) {
             </>
           )}
 
-          {(item.type === "song" || item.type === "album") && (
-            <p className="hidden w-fit text-sm text-muted-foreground hover:text-foreground lg:block">
-              <Link href={item.label_url ?? "#"}>{item.copyright_text}</Link>
+          {item.type === "song" && (
+            <p>
+              <Link
+                href={getHref(item.album_url, "album")}
+                className="hover:text-foreground"
+              >
+                {item.album}
+              </Link>
+              {" by "}
+              {item.artist_map.primary_artists.map(
+                ({ id, name, url }, i, arr) => (
+                  <Link
+                    key={id}
+                    href={getHref(url, "artist")}
+                    className="hover:text-foreground"
+                  >
+                    {name}
+                    {i !== arr.length - 1 && ", "}
+                  </Link>
+                )
+              )}
             </p>
           )}
+
+          {item.type === "episode" && <p>{item.header_desc}</p>}
 
           {item.type === "playlist" && (
             <p className="capitalize">
@@ -222,58 +214,82 @@ export async function DetailsHeader({ item }: DetailsHeaderProps) {
 
           {item.type === "label" && <p>Record Label</p>}
         </div>
+      </div>
 
-        {item.type !== "label" && (
-          <div className="mt-4 flex gap-2 lg:mt-6">
-            <PlayButton
-              type={item.type}
-              token={
-                item.type === "show" ?
-                  item.id
-                : (item.type === "artist" ? item.urls.songs : item.url)
-                    .split("/")
-                    .pop()!
-              }
-              className={cn(
-                buttonVariants(),
-                "rounded-full px-10 text-xl font-bold shadow-sm"
-              )}
-            >
-              Play
-            </PlayButton>
+      <div className="mt-4 flex gap-2">
+        <PlayButton
+          type={item.type}
+          token={
+            item.type === "show" ?
+              item.id
+            : (item.type === "artist" ? item.urls.songs : item.url)
+                .split("/")
+                .pop()!
+          }
+          className={cn(
+            buttonVariants(),
+            "rounded-full px-10 text-xl font-bold shadow-sm"
+          )}
+        >
+          Play
+        </PlayButton>
 
-            <LikeButton
-              user={user}
-              type={item.type}
-              token={item.id}
-              name={item.name}
-              favourites={favorites}
-              className={cn(
-                buttonVariants({ size: "icon", variant: "outline" }),
-                "rounded-full shadow-sm"
-              )}
-            />
+        <LikeButton
+          user={user}
+          type={item.type}
+          token={item.id}
+          name={item.name}
+          favourites={favorites}
+          className={cn(
+            buttonVariants({ size: "icon", variant: "outline" }),
+            "rounded-full shadow-sm"
+          )}
+        />
 
-            <DownloadButton
-              songs={songs ?? []}
-              className={cn(
-                buttonVariants({ size: "icon", variant: "outline" }),
-                "rounded-full shadow-sm"
-              )}
-            />
+        <DownloadButton
+          songs={songs ?? []}
+          className={cn(
+            buttonVariants({ size: "icon", variant: "outline" }),
+            "rounded-full shadow-sm"
+          )}
+        />
 
-            <MoreButton
-              user={user}
-              name={item.name}
-              subtitle={item.subtitle}
-              type={item.type}
-              image={item.image}
-              songs={songs ?? []}
-              playlists={playlists}
-            />
-          </div>
+        <MoreButton
+          user={user}
+          name={item.name}
+          subtitle={item.subtitle}
+          type={item.type}
+          image={item.image}
+          songs={songs ?? []}
+          playlists={playlists}
+        />
+
+        {user && item.id && (
+          <FavoriteButton
+            isFavorite={favorites?.includes(item.id)}
+            favoriteId={item.id}
+            user={user}
+          />
         )}
-      </figcaption>
-    </figure>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="outline" className="h-9 w-9">
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="bottom" align="end">
+            <DropdownMenuItem
+              className="flex cursor-pointer items-center gap-2"
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+              }}
+            >
+              Copy link
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   );
 }

@@ -1,10 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-import type { Album, SearchReturnType, Song } from "@/types";
+import type { Album, Artist, SearchReturnType, Song } from "@/types";
 
+import { ArtistList } from "@/components/artist-list";
+import { ArtistListSkeleton } from "@/components/artist-list/loading";
 import { SliderCard } from "@/components/slider";
 import { SongListClient } from "@/components/song-list/song-list.client";
 import { CardContent } from "@/components/ui/card";
@@ -14,72 +17,47 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { search } from "@/lib/spotify-api";
 
+export interface ArtistSearchResult {
+  total: number;
+  results: Artist[];
+}
+
 type SearchResultsProps = {
+  type: string;
   query: string;
-  type: "song" | "album" | "playlist" | "artist" | "show";
-  initialSearchResults: SearchReturnType;
+  searchResults: {
+    artists: ArtistSearchResult;
+  };
 };
 
-export function SearchResults(props: SearchResultsProps) {
-  const { query, type, initialSearchResults } = props;
-
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    useInfiniteQuery({
-      queryKey: ["search-results", type, query],
-      queryFn: ({ pageParam }) => search(query, type, pageParam, 50),
-      getNextPageParam: ({ total }, allPages) =>
-        allPages.length * 50 < total ? allPages.length + 1 : undefined,
-      initialPageParam: 1,
-      initialData: { pages: [initialSearchResults], pageParams: [1] },
-    });
-
-  const searchResults = data.pages.flatMap(
-    (page) => page.results as (Album | Song)[]
-  );
-
-  const [ref] = useIntersectionObserver({
-    threshold: 0.5,
-    onChange(isIntersecting) {
-      if (isIntersecting) {
-        fetchNextPage();
-      }
-    },
-  });
-
+export function SearchResults({
+  type,
+  query,
+  searchResults,
+}: SearchResultsProps) {
   return (
-    <>
-      {type === "song" ?
-        <SongListClient items={searchResults as Song[]} />
-      : <div className="flex w-full flex-wrap justify-between gap-y-4">
-          {searchResults.map(({ id, name, url, subtitle, type, image }) => (
-            <SliderCard
-              key={id}
-              name={name}
-              url={url}
-              subtitle={subtitle}
-              type={type}
-              image={image}
-            />
-          ))}
-        </div>
-      }
+    <div className="container pb-20">
+      <div className="py-6">
+        <h1 className="text-3xl font-bold mb-2">
+          Search results for {`"${query}"`}
+        </h1>
+        {searchResults.artists.total > 0 && (
+          <p className="text-muted-foreground">
+            Found {searchResults.artists.total} results
+          </p>
+        )}
+      </div>
 
-      {hasNextPage ?
-        <div
-          ref={ref}
-          className="flex items-center justify-center gap-2 font-bold text-muted-foreground"
-        >
-          {isFetchingNextPage && (
-            <>
-              <Loader2 className="size-5 animate-spin" /> Loading...
-            </>
-          )}
-        </div>
-      : <h3 className="py-6 text-center font-heading text-xl drop-shadow-md dark:bg-gradient-to-br dark:from-neutral-200 dark:to-neutral-600 dark:bg-clip-text dark:text-transparent sm:text-2xl md:text-3xl">
-          <em>Yay! You have seen it all</em>{" "}
-          <span className="text-foreground">🤩</span>
-        </h3>
-      }
-    </>
+      <Tabs defaultValue="artists">
+        <TabsList className="mb-4">
+          <TabsTrigger value="artists">Artists</TabsTrigger>
+        </TabsList>
+        <TabsContent value="artists">
+          <Suspense fallback={<ArtistListSkeleton count={10} />}>
+            <ArtistList artists={searchResults.artists.results} />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

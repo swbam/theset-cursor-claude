@@ -1,31 +1,39 @@
 import {
   Home,
+  LibraryBig,
   Mic2,
   Music,
   Search,
+  Settings,
   Star,
-  TicketIcon,
-  TrendingUp,
+  ThumbsUp,
+  Ticket as TicketIcon,
 } from "lucide-react";
 
 export const siteConfig = {
   name: "TheSet",
   description:
-    "Discover upcoming concerts, vote on setlists, and influence live performances with TheSet.",
-  url: process.env.NEXT_PUBLIC_APP_URL || "https://theset.app",
-  ogImage: "/og.png",
+    "A modern concert discovery and setlist voting platform. Find shows, vote on setlists, and connect with your Spotify library.",
+  url: "https://theset.vercel.app",
+  ogImage: "https://theset.vercel.app/og.jpg",
+  links: {
+    github: "https://github.com/swbam/theset-cursor-claude",
+    twitter: "https://twitter.com/theset",
+    x: "https://x.com/theset",
+    discord: "https://discord.gg/theset",
+  },
   mainNav: [
     {
       title: "Home",
       href: "/",
     },
     {
-      title: "Artists",
-      href: "/artist",
-    },
-    {
       title: "Shows",
       href: "/shows",
+    },
+    {
+      title: "Artists",
+      href: "/artist",
     },
     {
       title: "Search",
@@ -37,12 +45,17 @@ export const siteConfig = {
       title: "Discover",
       items: [
         {
-          title: "Trending Shows",
+          title: "Home",
           href: "/",
-          icon: TrendingUp,
+          icon: Home,
         },
         {
-          title: "All Shows",
+          title: "Search",
+          href: "/search",
+          icon: Search,
+        },
+        {
+          title: "Shows",
           href: "/shows",
           icon: TicketIcon,
         },
@@ -54,17 +67,27 @@ export const siteConfig = {
       ],
     },
     {
-      title: "My Music",
+      title: "Account",
       items: [
         {
           title: "My Spotify Artists",
           href: "/my/artists",
-          icon: Music,
+          icon: LibraryBig,
         },
         {
           title: "My Setlists",
           href: "/my/setlists",
           icon: Star,
+        },
+        {
+          title: "My Votes",
+          href: "/my/votes",
+          icon: ThumbsUp,
+        },
+        {
+          title: "Settings",
+          href: "/settings",
+          icon: Settings,
         },
       ],
     },

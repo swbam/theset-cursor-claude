@@ -1,68 +1,126 @@
-import { NextRequest, NextResponse } from "next/server";
+"use server";
 
-import { createServerOnlyDb } from "@/lib/db-server";
+import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+
+import { db } from "@/lib/db";
+import { artists, setlistSongs, shows, venues } from "@/lib/db/schema";
 
 export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const type = searchParams.get("type");
+  const id = searchParams.get("id");
+
+  if (!type) {
+    return NextResponse.json(
+      { error: "Missing type parameter" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get("type");
-    const id = searchParams.get("id");
-
-    const db = await createServerOnlyDb();
-
-    if (!type) {
-      return NextResponse.json(
-        { error: "Type parameter is required" },
-        { status: 400 }
-      );
-    }
-
-    let data;
-
+    // Handle different data types
     switch (type) {
       case "artists":
         if (id) {
-          data = await db.query.artists.findFirst({
-            where: (artists, { eq }) => eq(artists.id, id),
-          });
+          // Fetch a single artist
+          const artist = await db
+            .select()
+            .from(artists)
+            .where(eq(artists.id, id))
+            .limit(1);
+          return NextResponse.json({ data: artist[0] || null });
         } else {
-          data = await db.query.artists.findMany({
-            limit: 10,
-          });
+          // Fetch all artists
+          const allArtists = await db.select().from(artists);
+          return NextResponse.json({ data: allArtists });
         }
-        break;
 
       case "shows":
         if (id) {
-          data = await db.query.shows.findFirst({
-            where: (shows, { eq }) => eq(shows.id, id),
-            with: {
-              artist: true,
-              venue: true,
-            },
-          });
+          // Fetch a single show with artist and venue
+          const show = await db
+            .select()
+            .from(shows)
+            .where(eq(shows.id, id))
+            .limit(1);
+
+          if (!show[0]) {
+            return NextResponse.json({ data: null });
+          }
+
+          // Get the artist
+          const artist = await db
+            .select()
+            .from(artists)
+            .where(eq(artists.id, show[0].artist_id))
+            .limit(1);
+
+          // Get the venue
+          const venue = await db
+            .select()
+            .from(venues)
+            .where(eq(venues.id, show[0].venue_id))
+            .limit(1);
+
+          // Get setlist songs
+          const setlist = await db
+            .select()
+            .from(setlistSongs)
+            .where(eq(setlistSongs.show_id, id));
+
+          // Combine the data
+          const enrichedShow = {
+            ...show[0],
+            artist: artist[0] || null,
+            venue: venue[0] || null,
+            setlist_songs: setlist || [],
+          };
+
+          return NextResponse.json({ data: enrichedShow });
         } else {
-          data = await db.query.shows.findMany({
-            limit: 10,
-            with: {
-              artist: true,
-              venue: true,
-            },
-          });
+          // Fetch all shows with artist and venue
+          const allShows = await db.select().from(shows);
+
+          // Enrich shows with artist and venue data
+          const enrichedShows = await Promise.all(
+            allShows.map(async (show) => {
+              const artist = await db
+                .select()
+                .from(artists)
+                .where(eq(artists.id, show.artist_id))
+                .limit(1);
+              const venue = await db
+                .select()
+                .from(venues)
+                .where(eq(venues.id, show.venue_id))
+                .limit(1);
+
+              return {
+                ...show,
+                artist: artist[0] || null,
+                venue: venue[0] || null,
+              };
+            })
+          );
+
+          return NextResponse.json({ data: enrichedShows });
         }
-        break;
 
       case "venues":
         if (id) {
-          data = await db.query.venues.findFirst({
-            where: (venues, { eq }) => eq(venues.id, id),
-          });
+          // Fetch a single venue
+          const venue = await db
+            .select()
+            .from(venues)
+            .where(eq(venues.id, id))
+            .limit(1);
+          return NextResponse.json({ data: venue[0] || null });
         } else {
-          data = await db.query.venues.findMany({
-            limit: 10,
-          });
+          // Fetch all venues
+          const allVenues = await db.select().from(venues);
+          return NextResponse.json({ data: allVenues });
         }
-        break;
 
       default:
         return NextResponse.json(
@@ -70,12 +128,10 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
     }
-
-    return NextResponse.json({ data });
   } catch (error) {
     console.error("Error fetching data:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to fetch data" },
       { status: 500 }
     );
   }

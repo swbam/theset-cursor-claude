@@ -1,8 +1,7 @@
 import { z } from "zod";
 
-import { AllSearch as SpotifyAllSearch } from "@/lib/spotify-api";
-
-export type AllSearch = SpotifyAllSearch;
+// Export all types from theset.ts
+export * from "./theset";
 
 // Website Settings
 export type SiteConfig = {
@@ -27,68 +26,6 @@ export interface User {
 export interface Session {
   user: User;
   expires: string;
-}
-
-// Concert and setlist related types
-export interface Artist {
-  id: string;
-  name: string;
-  image: string;
-  type: string;
-  url: string;
-  followers?: number;
-  popularity?: number;
-  genres?: string[];
-}
-
-export interface Venue {
-  id: string;
-  name: string;
-  city: string;
-  address?: string;
-  latitude?: number;
-  longitude?: number;
-  capacity?: number;
-  image_url?: string;
-}
-
-export interface Show {
-  id: string;
-  title: string;
-  date: Date;
-  artist_id: string;
-  venue_id: string;
-  image_url?: string;
-  min_price?: number;
-  max_price?: number;
-  ticket_url?: string;
-  artist?: Artist;
-  venue?: Venue;
-  setlist_songs?: SetlistSong[];
-}
-
-export interface TopTrack {
-  id: string;
-  artist_id: string;
-  name: string;
-  spotify_id: string;
-  preview_url?: string;
-  popularity?: number;
-}
-
-export interface SetlistSong {
-  id: string;
-  show_id: string;
-  song_name: string;
-  artist_name: string;
-  votes: number;
-  position: number;
-  user_has_voted?: boolean;
-}
-
-export interface Setlist {
-  show_id: string;
-  songs: SetlistSong[];
 }
 
 // Form schemas

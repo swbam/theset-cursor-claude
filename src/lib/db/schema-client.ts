@@ -1,90 +1,96 @@
 /**
- * This is a client-safe version of the schema file that doesn't import Node.js modules
- * It's used for type definitions and structure only, not for actual database operations
+ * Client-side schema definitions
+ *
+ * This file contains type-only exports of our database schema
+ * for use in client components. It does not import any Node.js
+ * modules or database drivers.
  */
 
-// Basic type definitions for client-side use
-export type User = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  image: string | null;
-};
-
-export type Artist = {
+// Artist table
+export interface ArtistTable {
   id: string;
   name: string;
-  spotify_id: string;
-  image_url: string | null;
-  genres: string[] | null;
-  popularity: number | null;
-};
+  image: string;
+  type: string;
+  url: string;
+  followers?: number;
+  popularity?: number;
+  genres?: string[];
+  created_at?: Date | string;
+  updated_at?: Date | string;
+}
 
-export type Venue = {
+// Venue table
+export interface VenueTable {
   id: string;
   name: string;
   city: string;
-  state: string | null;
-  country: string | null;
-  address: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  capacity: number | null;
-};
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  capacity?: number;
+  image_url?: string;
+  created_at?: Date | string;
+  updated_at?: Date | string;
+}
 
-export type Show = {
+// Show table
+export interface ShowTable {
   id: string;
   title: string;
-  date: Date;
+  date: Date | string;
   artist_id: string;
   venue_id: string;
-  image_url: string | null;
-  description: string | null;
-  min_price: number | null;
-  max_price: number | null;
-  ticket_url: string | null;
-  status: string;
-};
+  image_url?: string;
+  min_price?: number;
+  max_price?: number;
+  ticket_url?: string;
+  created_at?: Date | string;
+  updated_at?: Date | string;
+}
 
-export type SetlistSong = {
+// Top track table
+export interface TopTrackTable {
+  id: string;
+  artist_id: string;
+  name: string;
+  spotify_id: string;
+  preview_url?: string;
+  popularity?: number;
+  created_at?: Date | string;
+}
+
+// Setlist song table
+export interface SetlistSongTable {
   id: string;
   show_id: string;
   song_name: string;
   artist_name: string;
   votes: number;
   position: number;
-  suggested_by: string | null;
-};
+  created_at?: Date | string;
+  updated_at?: Date | string;
+}
 
-export type Vote = {
+// Vote table
+export interface VoteTable {
   id: string;
   user_id: string;
   setlist_song_id: string;
-  created_at: Date;
-};
+  created_at: Date | string;
+}
 
-// Mock tables for client-side use
-export const users = {
-  id: "id",
-};
+// User followed artist table
+export interface UserFollowedArtistTable {
+  user_id: string;
+  artist_id: string;
+  created_at?: Date | string;
+}
 
-export const artists = {
-  id: "id",
-};
-
-export const venues = {
-  id: "id",
-};
-
-export const shows = {
-  id: "id",
-};
-
-export const setlistSongs = {
-  id: "id",
-  _: { name: "setlist_songs" },
-};
-
-export const votes = {
-  id: "id",
-};
+// User top artist table
+export interface UserTopArtistTable {
+  user_id: string;
+  artist_id: string;
+  rank: number;
+  created_at?: Date | string;
+}

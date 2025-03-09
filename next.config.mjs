@@ -39,14 +39,13 @@ const nextConfig = {
     }
     return config;
   },
-  experimental: {
-    serverExternalPackages: [
-      "postgres",
-      "pg",
-      "@neondatabase/serverless",
-      "drizzle-orm",
-    ],
-  },
+  experimental: {},
+  serverExternalPackages: [
+    "postgres",
+    "pg",
+    "@neondatabase/serverless",
+    "drizzle-orm",
+  ],
 };
 
 export default nextConfig; 

@@ -3,17 +3,17 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: z.string().url().optional(),
     NEXTAUTH_URL: z.string().url().optional(),
-    NEXTAUTH_SECRET: z.string().min(1),
-    SPOTIFY_CLIENT_ID: z.string().min(1),
-    SPOTIFY_CLIENT_SECRET: z.string().min(1),
-    TICKETMASTER_API_KEY: z.string().min(1),
+    NEXTAUTH_SECRET: z.string().min(1).optional(),
+    SPOTIFY_CLIENT_ID: z.string().min(1).optional(),
+    SPOTIFY_CLIENT_SECRET: z.string().min(1).optional(),
+    TICKETMASTER_API_KEY: z.string().min(1).optional(),
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
     GITHUB_CLIENT_ID: z.string().min(1).optional(),
     GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
     PUSHER_APP_ID: z.string().min(1).optional(),
     PUSHER_SECRET: z.string().min(1).optional(),
     UPSTASH_REDIS_REST_URL: z.string().url().optional(),
@@ -22,9 +22,9 @@ export const env = createEnv({
     RATE_LIMITING_REQUESTS_PER_SECOND: z.coerce.number().optional(),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().url(),
-    NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_PUSHER_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_PUSHER_CLUSTER: z.string().min(1).optional(),
     NEXT_PUBLIC_UMAMI_WEBSITE_ID: z.string().optional(),
@@ -54,5 +54,5 @@ export const env = createEnv({
     RATE_LIMITING_REQUESTS_PER_SECOND: process.env.RATE_LIMITING_REQUESTS_PER_SECOND,
     NEXT_PUBLIC_UMAMI_WEBSITE_ID: process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID,
   },
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+  skipValidation: process.env.SKIP_ENV_VALIDATION === "true",
 }); 

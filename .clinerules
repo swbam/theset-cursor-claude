@@ -1,0 +1,338 @@
+## **Development Rules & Methodology**
+
+### **Phase 1: Codebase Analysis** 
+
+**Tasks:**
+
+1. **Complete codebase review:**
+
+   * Identify all JioSaavn API touchpoints  
+   * Map existing components to new requirements  
+   * Document reusable UI components and patterns  
+   * Create inventory of what needs to be removed vs. adapted  
+2. **Dependency analysis:**
+
+   * Identify third-party libraries used for music playback  
+   * Map data flow between components  
+   * Audit authentication system for Spotify integration
+
+**Deliverable:** Comprehensive transformation plan with component mappings
+
+### **Phase 2: Infrastructure Setup** 
+
+**Tasks:**
+
+1. **Database implementation:**
+
+   * Create all Supabase tables using Drizzle schema  
+   * Set up appropriate indexes and constraints  
+   * Configure real-time capabilities  
+2. **API integration:**
+
+   * Implement and test Spotify API client  
+   * Implement and test Ticketmaster API client  
+   * Create caching layer for both APIs  
+3. **Authentication:**
+
+   * Configure Spotify OAuth with Supabase  
+   * Implement login/logout flow  
+   * Set up authorization controls for voting
+
+**Deliverable:** Working infrastructure with API connectivity
+
+### **Phase 3: Core Features Development Tasks:**
+
+1. **UI transformation:**
+
+   * Remove music player components  
+   * Adapt artist page to show concerts  
+   * Create show page with setlist  
+   * Implement voting mechanism  
+2. **Search modification:**
+
+   * Limit search to artists only  
+   * Update search results UI  
+   * Enhance artist result display  
+3. **Homepage redesign:**
+
+   * Replace streaming content with concert listings  
+   * Implement filtering and sorting  
+   * Create personalized sections for logged-in users
+
+**Deliverable:** Functional app with core features working
+
+### **Phase 4: Spotify Integration & Advanced Features**
+
+**Tasks:**
+
+1. **User personalization:**
+
+   * Fetch and store user's Spotify data  
+   * Create "My Spotify Artists" page  
+   * Generate personalized show recommendations  
+2. **Real-time functionality:**
+
+   * Implement WebSocket connections for voting  
+   * Add real-time UI updates  
+   * Ensure synchronization between clients  
+3. **Mobile optimization:**
+
+   * Implement bottom navigation  
+   * Add swipe gestures  
+   * Ensure all elements are touch-friendly
+
+**Deliverable:** Complete app with all features functioning
+
+### **Phase 5: Testing & Optimization** 
+
+**Tasks:**
+
+1. **Performance optimization:**
+
+   * Implement lazy loading  
+   * Optimize API calls  
+   * Add caching at multiple levels  
+2. **Testing:**
+
+   * Test across devices and browsers  
+   * Verify real-time functionality  
+   * Test with real API data  
+3. **Final polish:**
+
+   * Fix any UI inconsistencies  
+   * Ensure dark mode aesthetic is maintained  
+   * Remove any remaining references to music playback
+
+**Deliverable:** Production-ready application
+
+## **Technical Requirements**
+
+### **Stack**
+
+* **Framework:** Next.js (App Router)  
+* **UI Components:** ShadCN UI and Tailwind CSS  
+* **Database:** Supabase with Drizzle ORM  
+* **Authentication:** Supabase Auth with Spotify OAuth  
+* **APIs:** Ticketmaster Discovery API, Spotify API  
+* **Real-time:** WebSockets via Supabase Realtime or Pusher  
+* **Caching:** Redis for server-side, SWR or TanStack Query for client-side
+
+### **Coding Standards**
+
+* TypeScript for all new code  
+* Component-based architecture  
+* Server components for data fetching where appropriate  
+* Client components for interactive elements  
+* Thorough error handling for all API calls  
+* Responsive design for all components
+
+## **Key Considerations**
+
+1. **Complete removal of music playback functionality:**
+
+   * No audio players, volume controls, or playback-related UI  
+   * No streaming-related features (play queues, playlists, etc.)  
+   * No references to radio, TV shows, episodes, seasons
+    * Adapt the /my/playlist and those functions to be "my/setlists" and make those be what shows you suggested songs on or voting on of a setlist for that show.
+2. **Focus on concert discovery and setlist voting:**
+
+   * Text-focused UI for show listings  
+   * Intuitive voting interface  
+   * Real-time updates for community engagement  
+3. **Efficient data management:**
+
+   * Lazy loading of artist and show data  
+   * Multi-layered caching  
+   * Incremental updates for changed data  
+4. **Mobile-first experience:**
+
+   * Bottom navigation for mobile  
+   * Touch-friendly controls  
+   * Swipe gestures for navigation
+
+## **Project Deliverables**
+
+1. **Fully functioning web application that:**
+
+   * Allows users to search for artists  
+   * Displays upcoming shows for each artist  
+   * Enables voting on setlist songs  
+   * Suggests new songs for setlists  
+   * Provides real-time updates for votes and suggestions  
+   * Personalizes content for Spotify-authenticated users  
+2. **Clean, modern UI with:**
+
+   * Dark mode aesthetic  
+   * Responsive design for all devices  
+   * Intuitive navigation  
+   * Consistent styling using ShadCN components  
+3. **Well-structured codebase with:**
+
+   * Clear separation of concerns  
+   * Reusable components  
+   * Efficient data management  
+   * Comprehensive error handling
+
+Remember, the success of this project hinges on how effectively you transform the infinitunes codebase by removing music playback features while maintaining its architectural strengths and UI foundations. Focus on a systematic approach, beginning with thorough analysis before making any changes.
+
+
+
+
+# TheSet: Architecture Transformation Plan
+
+## Overview
+
+This document outlines the architectural plan for transforming the infinitunes music streaming application into TheSet, a concert discovery and setlist voting platform. The transformation will maintain the existing architectural strengths and UI foundations while replacing the music streaming functionality with concert discovery and setlist voting features.
+
+## System Architecture
+
+### Frontend Architecture
+
+The application will continue to use Next.js with the App Router, maintaining the existing component-based architecture. Key changes include:
+
+1. **UI Components**: Retain ShadCN UI and Tailwind CSS for consistent styling
+2. **Client-Side State Management**: Replace music player state with voting and setlist state
+3. **Authentication**: Integrate Spotify OAuth for personalized experiences
+4. **Real-time Updates**: Implement WebSockets via Supabase Realtime for voting
+
+### Backend Architecture
+
+The backend will be transformed from JioSaavn API integration to a combination of:
+
+1. **Supabase Database**: Store user data, artists, shows, venues, setlists, and votes
+2. **Spotify API**: Fetch artist information and top tracks
+3. **Ticketmaster API**: Retrieve concert and venue information
+4. **Redis Caching**: Optimize API calls with multi-level caching
+
+## Data Flow
+
+```mermaid
+graph TD
+    User[User] --> Auth[Authentication]
+    Auth --> SpotifyAuth[Spotify OAuth]
+    
+    User --> Search[Artist Search]
+    Search --> SpotifyAPI[Spotify API]
+    SpotifyAPI --> Cache[Redis Cache]
+    
+    User --> ArtistPage[Artist Page]
+    ArtistPage --> SpotifyAPI
+    ArtistPage --> TicketmasterAPI[Ticketmaster API]
+    
+    User --> ShowPage[Show Page]
+    ShowPage --> TicketmasterAPI
+    ShowPage --> SetlistVoting[Setlist Voting]
+    
+    SetlistVoting --> Supabase[Supabase Database]
+    SetlistVoting --> Realtime[Supabase Realtime]
+    Realtime --> User
+    
+    SpotifyAuth --> UserData[User's Spotify Data]
+    UserData --> SpotifyAPI
+    UserData --> Recommendations[Show Recommendations]
+```
+
+## Database Schema
+
+The Supabase database will include the following tables:
+
+1. **artists**: Store artist information from Spotify
+2. **venues**: Store venue information from Ticketmaster
+3. **shows**: Link artists to venues with show dates and ticket information
+4. **top_tracks**: Store artist's top tracks for setlist suggestions
+5. **setlists**: Associate shows with their setlists
+6. **setlist_songs**: Store songs in a setlist with vote counts
+7. **votes**: Track user votes for setlist songs
+8. **user_followed_artists**: Store user's followed artists from Spotify
+9. **user_top_artists**: Store user's top artists from Spotify
+
+## API Integration
+
+### Spotify API
+
+- **Authentication**: OAuth 2.0 with scopes for user data
+- **Endpoints Used**:
+  - Artist search
+  - Artist details
+  - Artist top tracks
+  - User's followed artists
+  - User's top artists
+
+### Ticketmaster API
+
+- **Authentication**: API Key
+- **Endpoints Used**:
+  - Event search by artist
+  - Event details
+  - Venue information
+
+## Authentication Flow
+
+1. User initiates login with Spotify
+2. User is redirected to Spotify OAuth consent screen
+3. After authorization, user is redirected back to the application
+4. Application stores the user's session
+5. Application fetches user's Spotify data (followed artists, top artists)
+
+## Real-time Voting System
+
+1. User votes for a song in a setlist
+2. Vote is recorded in the database
+3. Supabase Realtime broadcasts the vote to all connected clients
+4. Clients update their UI to reflect the new vote count
+
+## Caching Strategy
+
+1. **Redis Cache**:
+   - Short-term cache (5 minutes) for search results
+   - Medium-term cache (1 day) for artist and event details
+   - Long-term cache (1 week) for venue information
+
+2. **Client-side Caching**:
+   - SWR for data fetching with stale-while-revalidate pattern
+   - Local storage for user preferences
+
+## Mobile Optimization
+
+1. **Bottom Navigation**: Replace music controls with navigation
+2. **Touch-friendly UI**: Ensure all interactive elements have adequate touch targets
+3. **Swipe Gestures**: Implement for navigating between related content
+
+## Performance Considerations
+
+1. **Lazy Loading**: Implement for artist and show data
+2. **Image Optimization**: Use Next.js Image component with proper sizing
+3. **API Request Batching**: Minimize API calls by batching requests
+4. **Server-side Rendering**: Use for initial page load
+5. **Client-side Rendering**: Use for interactive elements
+
+## Migration Strategy
+
+1. **Phase 1: Codebase Analysis**
+   - Identify JioSaavn API touchpoints
+   - Map existing components to new requirements
+   - Document reusable UI components
+
+2. **Phase 2: Infrastructure Setup**
+   - Implement database schema
+   - Set up API clients
+   - Configure authentication
+
+3. **Phase 3: Core Features Development**
+   - Transform UI components
+   - Implement search functionality
+   - Create artist and show pages
+
+4. **Phase 4: Advanced Features**
+   - Implement personalization
+   - Add real-time voting
+   - Optimize for mobile
+
+5. **Phase 5: Testing and Optimization**
+   - Performance testing
+   - Cross-browser testing
+   - Final polish
+
+## Conclusion
+
+This architecture plan provides a comprehensive roadmap for transforming infinitunes into TheSet while maintaining the application's strengths. By focusing on a systematic approach to the transformation, we can ensure a smooth transition and deliver a high-quality concert discovery and setlist voting platform.
